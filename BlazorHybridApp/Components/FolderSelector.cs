@@ -41,7 +41,9 @@ public class FolderSelector
         {
             state.Value = path;
         }
-        
+
+        SyncPath = state.Value;
+
         await _dbContext.SaveChangesAsync();
 
     }
