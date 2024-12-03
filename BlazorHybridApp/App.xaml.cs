@@ -1,4 +1,7 @@
-﻿namespace BlazorHybridApp
+﻿using Microsoft.Maui;
+using Microsoft.Maui.Controls;
+
+namespace BlazorHybridApp
 {
     public partial class App : Application
     {
