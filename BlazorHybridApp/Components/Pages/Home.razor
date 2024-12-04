@@ -1,7 +1,9 @@
 ﻿@page "/"
+@using BlazorHybridApp.Core
 @inject IFolderPickerService FolderPickerService
 @inject FileSyncService FileSyncService
 @inject FolderSelector FolderSelector
+@inject BackgroundTest BackgroundTest
 
 <button @onclick="PickFolder">Select Folder</button>
 <button @onclick="TriggerSync">Trigger Sync</button>
@@ -28,6 +30,11 @@
     protected override async Task OnInitializedAsync()
     {
         SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
+
+        Task.Run(async () =>
+        {
+            //await BackgroundTest.StartAsync();
+        });
     }
 
 }

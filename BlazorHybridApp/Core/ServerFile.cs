@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorHybridApp.Components;
+namespace BlazorHybridApp.Core;
 
 public class ServerFile
 {

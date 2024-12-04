@@ -1,4 +1,4 @@
-﻿namespace BlazorHybridApp.Components;
+﻿namespace BlazorHybridApp.Core;
 
 public class AppState
 {

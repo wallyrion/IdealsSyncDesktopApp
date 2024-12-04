@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using BlazorHybridApp.Components;
+using BlazorHybridApp.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,8 @@ namespace BlazorHybridApp
 
             builder.Services.AddScoped<FileSyncHttpClient>();
             builder.Services.AddScoped<FileSyncService>();
-            
+            builder.Services.AddSingleton<BackgroundTest>();
+
 
 #if WINDOWS
 builder.Services.AddSingleton<IFolderPickerService, WindowsFolderPickerService>();

@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlazorHybridApp.Components;
+namespace BlazorHybridApp.Core;
 
 public class FolderSelector
 {
     private readonly AppDbContext _dbContext;
-    public string SyncPath { get; private set; }
+    public string? SyncPath { get; private set; }
 
     public FolderSelector(AppDbContext dbContext)
     {
