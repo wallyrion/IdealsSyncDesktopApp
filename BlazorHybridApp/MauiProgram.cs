@@ -3,6 +3,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using BlazorHybridApp.Components;
 using BlazorHybridApp.Core;
+using CommunityToolkit.Maui;
+using CommunityToolkit.Maui.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,6 +21,7 @@ namespace BlazorHybridApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -30,7 +33,8 @@ namespace BlazorHybridApp
             });
 
             builder.Services.AddSingleton<FolderSelector>();
-            
+            builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);
+
             builder.Services.AddScoped(sp =>
                 new HttpClient
                 {

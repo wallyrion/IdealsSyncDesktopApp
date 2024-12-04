@@ -1,8 +1,10 @@
 ﻿@page "/"
 @using BlazorHybridApp.Core
+@using CommunityToolkit.Maui.Storage
 @inject IFolderPickerService FolderPickerService
 @inject FileSyncService FileSyncService
 @inject FolderSelector FolderSelector
+@inject IFolderPicker FolderPicker
 @inject BackgroundTest BackgroundTest
 
 <button @onclick="PickFolder">Select Folder</button>
@@ -18,7 +20,9 @@
 
     private async Task PickFolder()
     {
-        SelectedPath = await FolderPickerService.PickFolderAsync();
+        var result = await FolderPicker.PickAsync();
+        
+        ///SelectedPath = await FolderPickerService.PickFolderAsync();
         await FolderSelector.SelectNewSyncPath(SelectedPath);
     }
 
