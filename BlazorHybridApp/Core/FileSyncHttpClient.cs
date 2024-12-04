@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Net.Http.Headers;
 using System.Net.Http;
@@ -63,14 +62,4 @@ public class FileSyncHttpClient
         var response = await _client.DeleteAsync($"/files/{fileId}");
         response.EnsureSuccessStatusCode();
     }
-}
-
-public class ServerFile
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string ContentType { get; set; }
-    public long Size { get; set; }
-    public DateTime UpdatedAt { get; set; }
-    public DateTime CreatedAt { get; set; }
 }
