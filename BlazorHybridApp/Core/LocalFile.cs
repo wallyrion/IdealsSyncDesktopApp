@@ -9,4 +9,14 @@ public class LocalFile
     public int SyncedFileId { get; set; }
     public DateTime? SyncedAt { get; set; }
     public DateTime? LastUpdatedAt { get; set; }
+    
+    public SyncStatus Status { get; set; }
+}
+
+
+public enum SyncStatus
+{
+    SyncInProgress,
+    Synced,
+    WaitingForDeletion
 }

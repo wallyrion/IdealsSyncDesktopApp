@@ -26,7 +26,10 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
 
         // Get local files
         var localFileNames = Directory.GetFiles(folderSelector.SyncPath)
-            .Select(f => new FileInfo(f).Name);
+            .Select(f => new FileInfo(f).Name)
+            .ToList();
+        var dbFileNames = db.Files.Select(x => x.Name).ToList();
+        var missingFileNames = dbFileNames.Except(localFileNames);
 
         var dbFileIds = db.Files.Select(x => x.SyncedFileId).ToList();
         var serverFilesToCreate = serverFiles.ExceptBy(dbFileIds, f => f.Id);
@@ -38,12 +41,25 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         }
 
         // sync files from local system that does not exist on the server
-        var dbFileNames = db.Files.Select(x => x.Name);
         var localFilesToCreate = localFileNames.Except(dbFileNames);
 
-        foreach (var fileName in localFilesToCreate)
+        var filesProjections = localFilesToCreate.Select(ConstructLocalFile).ToList();
+        db.Files.AddRange(filesProjections);
+        await db.SaveChangesAsync();
+
+        // find deleted files
+        var filesToDelete = db.Files.Where(x => missingFileNames.Contains(x.Name)).ToList();
+        filesToDelete.ForEach(x => x.Status = SyncStatus.WaitingForDeletion);
+        await db.SaveChangesAsync();
+
+        foreach (var file in filesProjections)
         {
-            await SyncLocalFileToServer(fileName, db);
+            await SyncLocalFileToServer(file, db);
+        }
+        
+        foreach (var file in filesToDelete)
+        {
+            await RemoveFileFromServer(file, db);
         }
     }
 
@@ -58,32 +74,43 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
             Id = Guid.NewGuid(),
             Name = serverFile.Name,
             SyncedFileId = serverFile.Id,
-            SyncedAt = DateTime.UtcNow,
+            Status = SyncStatus.Synced,
             LastUpdatedAt = fileInfo.LastWriteTimeUtc
         });
 
         await db.SaveChangesAsync();
     }
 
-    private async Task SyncLocalFileToServer(string fileName, AppDbContext db)
+    private async Task SyncLocalFileToServer(LocalFile file, AppDbContext db)
+    {
+        var path = Path.Combine(folderSelector.SyncPath!, file.Name);
+        var bytes = await File.ReadAllBytesAsync(path);
+        var createdServerFile = await httpClient.UploadFileAsync(file.Name, bytes);
+        file.SyncedFileId = createdServerFile.Id;
+        file.Status = SyncStatus.Synced;
+        file.SyncedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+    }
+
+    private async Task RemoveFileFromServer(LocalFile file, AppDbContext db)
+    {
+        await httpClient.DeleteFileAsync(file.SyncedFileId);
+
+        db.Files.Remove(file);
+        await db.SaveChangesAsync();
+    }
+
+    private LocalFile ConstructLocalFile(string fileName)
     {
         var localFilePath = Path.Combine(folderSelector.SyncPath!, fileName);
         var fileInfo = new FileInfo(localFilePath);
 
-        var newFile = new LocalFile
+        return new LocalFile
         {
             Id = Guid.NewGuid(),
             Name = fileName,
-            LastUpdatedAt = fileInfo.LastWriteTimeUtc
+            LastUpdatedAt = fileInfo.LastWriteTimeUtc,
+            Status = SyncStatus.SyncInProgress
         };
-
-        db.Files.Add(newFile);
-        await db.SaveChangesAsync();
-
-        var bytes = await File.ReadAllBytesAsync(localFilePath);
-        var createdServerFile = await httpClient.UploadFileAsync(fileName, bytes);
-        newFile.SyncedFileId = createdServerFile.Id;
-        newFile.SyncedAt = DateTime.UtcNow;
-        await db.SaveChangesAsync();
     }
 }
