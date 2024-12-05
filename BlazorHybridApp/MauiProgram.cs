@@ -34,7 +34,9 @@ namespace BlazorHybridApp
 
             builder.Services.AddSingleton<FolderSelector>();
             builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);
-
+            builder.Services.AddSingleton<State>();
+            builder.Services.AddSingleton<ExplorerService>();
+            
             builder.Services.AddScoped(sp =>
                 new HttpClient
                 {

@@ -3,26 +3,42 @@
 @using CommunityToolkit.Maui.Storage
 @inject IFolderPickerService FolderPickerService
 @inject FileSyncService FileSyncService
+@inject ExplorerService ExplorerService
 @inject FolderSelector FolderSelector
 @inject IFolderPicker FolderPicker
+@inject State State
 @inject BackgroundTest BackgroundTest
 
-<button @onclick="PickFolder">Select Folder</button>
-<button @onclick="TriggerSync">Trigger Sync</button>
+@implements IDisposable
+
+<button class="btn btn-primary" @onclick="PickFolder">Select Folder</button>
+@*<button @onclick="TriggerSync">Trigger Sync</button>*@
 
 @if (!string.IsNullOrEmpty(SelectedPath))
 {
-    <p>Selected Folder: @SelectedPath</p>
+    <div class="alert alert-info m-1">
+        @SelectedPath
+    </div>
 }
 
+<SyncExplorer Items="SyncItems">
+
+</SyncExplorer>
+
 @code {
-    private string SelectedPath;
+    private string? SelectedPath;
+    List<LocalFile> SyncItems { get; set; } = [];
 
     private async Task PickFolder()
     {
         var result = await FolderPicker.PickAsync();
-        
-        ///SelectedPath = await FolderPickerService.PickFolderAsync();
+
+        if (result.Folder is null)
+        {
+            return;
+        }
+
+        SelectedPath = result.Folder.Path;
         await FolderSelector.SelectNewSyncPath(SelectedPath);
     }
 
@@ -31,15 +47,33 @@
         await FileSyncService.SyncAsync();
     }
 
-    protected override async Task OnInitializedAsync()
+    async void Changed()
     {
-        SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
-
-        Task.Run(async () =>
-        {
-            //await BackgroundTest.StartAsync();
-        });
+        SyncItems = await FetchAllFiles();
+        await InvokeAsync(StateHasChanged);
     }
 
-}
 
+    private async Task<List<LocalFile>> FetchAllFiles()
+    {
+        return await ExplorerService.GetAllFiles();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.SyncStatusChanged += Changed;
+
+        SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
+
+        SyncItems = await FetchAllFiles();
+
+        Task.Run(async () => { await BackgroundTest.StartAsync(); });
+    }
+
+    public void Dispose()
+    {
+        State.SyncStatusChanged -= Changed;
+    }
+
+
+}

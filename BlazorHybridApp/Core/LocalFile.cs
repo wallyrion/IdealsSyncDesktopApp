@@ -4,13 +4,14 @@ namespace BlazorHybridApp.Core;
 
 public class LocalFile
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public int SyncedFileId { get; set; }
+    public required Guid Id { get; set; }
+    public required string Name { get; set; }
+    public int? SyncedFileId { get; set; }
     public DateTime? SyncedAt { get; set; }
     public DateTime? LastUpdatedAt { get; set; }
     
     public SyncStatus Status { get; set; }
+    public required string SyncPath { get; set; }
 }
 
 
