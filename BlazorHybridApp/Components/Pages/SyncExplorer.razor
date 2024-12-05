@@ -1,0 +1,43 @@
+﻿@using BlazorHybridApp.Core
+@inject FileSyncService FileSyncService
+@inject ExplorerService ExplorerService
+@inject State State
+
+<SyncTable Items="SyncItems" DeleteItem="DeleteItem">
+
+</SyncTable>
+
+@code {
+    List<LocalFile> SyncItems { get; set; } = [];
+
+
+    async void Changed()
+    {
+        SyncItems = await FetchAllFiles();
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async Task<List<LocalFile>> FetchAllFiles()
+    {
+        return await ExplorerService.GetAllFiles();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        State.SyncStatusChanged += Changed;
+
+        SyncItems = await FetchAllFiles();
+    }
+
+    public void Dispose()
+    {
+        State.SyncStatusChanged -= Changed;
+    }
+
+    private async Task DeleteItem(LocalFile file)
+    {
+        await FileSyncService.RemoveFileLocally(file);
+    }
+
+}

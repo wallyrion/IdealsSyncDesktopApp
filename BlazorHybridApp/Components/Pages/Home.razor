@@ -21,13 +21,10 @@
     </div>
 }
 
-<SyncExplorer Items="SyncItems">
-
-</SyncExplorer>
+<SyncExplorer></SyncExplorer>
 
 @code {
     private string? SelectedPath;
-    List<LocalFile> SyncItems { get; set; } = [];
 
     private async Task PickFolder()
     {
@@ -41,39 +38,17 @@
         SelectedPath = result.Folder.Path;
         await FolderSelector.SelectNewSyncPath(SelectedPath);
     }
-
-    private async Task TriggerSync()
-    {
-        await FileSyncService.SyncAsync();
-    }
-
-    async void Changed()
-    {
-        SyncItems = await FetchAllFiles();
-        await InvokeAsync(StateHasChanged);
-    }
-
-
-    private async Task<List<LocalFile>> FetchAllFiles()
-    {
-        return await ExplorerService.GetAllFiles();
-    }
-
+    
     protected override async Task OnInitializedAsync()
     {
-        State.SyncStatusChanged += Changed;
-
         SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
-
-        SyncItems = await FetchAllFiles();
 
         Task.Run(async () => { await BackgroundTest.StartAsync(); });
     }
 
     public void Dispose()
     {
-        State.SyncStatusChanged -= Changed;
+        
     }
-
 
 }

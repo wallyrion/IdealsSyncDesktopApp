@@ -9,6 +9,7 @@
         <th scope="col">Sync Path</th>
         <th scope="col">Synced File ID</th>
         <th scope="col">Synced At</th>
+        <th scope="col">Actions</th>
     </tr>
     </thead>
     <tbody>
@@ -39,6 +40,11 @@
             <td>@item.SyncPath</td>
             <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
             <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
+            <td>
+                <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </td>
         </tr>
     }
     </tbody>
@@ -47,4 +53,12 @@
 @code {
     [Parameter]
     public IEnumerable<LocalFile> Items { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<LocalFile> DeleteItem { get; set; }
+
+    private async Task OnDelete(LocalFile item)
+    {
+        await DeleteItem.InvokeAsync(item);
+    }
 }

@@ -195,4 +195,10 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
             SyncPath = syncPath
         };
     }
+
+    public async Task RemoveFileLocally(LocalFile file)
+    {
+        var path = Path.Combine(file.SyncPath, file.Name);
+        File.Delete(path);
+    }
 }
