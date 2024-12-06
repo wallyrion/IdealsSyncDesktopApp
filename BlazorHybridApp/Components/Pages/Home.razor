@@ -28,6 +28,8 @@
 
     private async Task PickFolder()
     {
+        
+        await Task.Delay(200);
         var result = await FolderPicker.PickAsync();
 
         if (result.Folder is null)

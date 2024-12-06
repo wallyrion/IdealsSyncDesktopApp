@@ -50,6 +50,72 @@
     </tbody>
 </table>
 
+
+<MudTable Items="@Items" Dense="true" Hover="true">
+    <ColGroup>
+        <col style="width: 40px;" />
+        <col style="width: 50%;" />
+        <col />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh></MudTh>
+        <MudTh>Name</MudTh>
+        <MudTh>Size</MudTh>
+        <MudTh>Status</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            <MudIcon Icon="@GetFileIcon(context.Name)" />
+        </MudTd>
+        <MudTd>@context.Name</MudTd>
+    </RowTemplate>
+</MudTable>
+
+<div class="d-flex flex-wrap gap-4 pa-4">
+    @foreach (var file in Items)
+    {
+        <MudPaper @key="file.Name"
+                  Class="relative"
+                  Width="180px"
+                  Height="200px"
+                  Elevation="2">
+            <div class="d-flex flex-column align-center pa-4 h-100">
+                <MudIcon Icon="@GetFileIcon(file.Name)"
+                         Size="Size.Large"
+                         Class="mb-2" />
+
+                <MudText Typo="Typo.body1"
+                         Class="text-center text-truncate px-2"
+                         Style="max-width: 160px;">
+                    @file.Name
+                </MudText>
+
+                @* <div class="mt-auto"> *@
+                @*     <MudChip Size="Size.Small"  *@
+                @*              Color="@GetStatusColor(file.Status)" *@
+                @*               Label="true"> *@
+                @*         @file.Status *@
+                @*     </MudChip> *@
+                @* </div> *@
+
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                         Dense="true"
+                         Class="absolute top-0 right-0 pa-2">
+                    <MudMenuItem OnClick="@(() => OpenFileAsync(file))">Open</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ShareFileAsync(file))">Share</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => ShowInFolderAsync(file))">Show in folder</MudMenuItem>
+                    <MudDivider />
+                    <MudMenuItem OnClick="@(() => DeleteFileAsync(file))"
+                                Class="text-error">
+                        Delete
+                    </MudMenuItem>
+                </MudMenu>
+            </div>
+        </MudPaper>
+    }
+</div>
+
 @code {
     [Parameter]
     public IEnumerable<LocalFile> Items { get; set; } = [];
@@ -60,5 +126,69 @@
     private async Task OnDelete(LocalFile item)
     {
         await DeleteItem.InvokeAsync(item);
+    }
+    
+    public static string GetFileIcon(string filePath)
+    {
+        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        
+        return extension switch
+        {
+            ".pdf" => Icons.Custom.FileFormats.FilePdf,
+            ".doc" or ".docx" => Icons.Custom.FileFormats.FileDocument,
+            ".xls" or ".xlsx" => Icons.Custom.FileFormats.FileExcel,
+            ".jpg" or ".jpeg" or ".png" or ".gif" => Icons.Custom.FileFormats.FileImage,
+            ".mp4" or ".avi" or ".mov" => Icons.Custom.FileFormats.FileVideo,
+            ".mp3" or ".wav" or ".ogg" => Icons.Custom.FileFormats.FileMusic,
+            ".zip" or ".rar" or ".7z" => Icons.Custom.Uncategorized.Folder,
+            _ => Icons.Custom.Uncategorized.Empty
+            };
+    }
+    
+    public static Color GetStatusColor(SyncStatus status)
+    {
+        return status switch
+        {
+            SyncStatus.Synced => Color.Success,
+            SyncStatus.IncomingSync => Color.Tertiary,
+            SyncStatus.OutgoingSync => Color.Secondary,
+            SyncStatus.WaitingForDeletion => Color.Warning,
+            _ => Color.Default
+            };
+    }
+    
+    [Parameter]
+    public List<LocalFile> Files { get; set; } = new();
+
+    [Parameter]
+    public EventCallback<LocalFile> OnOpen { get; set; }
+
+    [Parameter]
+    public EventCallback<LocalFile> OnShare { get; set; }
+
+    [Parameter]
+    public EventCallback<LocalFile> OnShowInFolder { get; set; }
+
+    [Parameter]
+    public EventCallback<LocalFile> OnMudDelete { get; set; }
+    
+    private async Task OpenFileAsync(LocalFile file)
+    {
+        await OnOpen.InvokeAsync(file);
+    }
+
+    private async Task ShareFileAsync(LocalFile file)
+    {
+        await OnShare.InvokeAsync(file);
+    }
+
+    private async Task ShowInFolderAsync(LocalFile file)
+    {
+        await OnShowInFolder.InvokeAsync(file);
+    }
+
+    private async Task DeleteFileAsync(LocalFile file)
+    {
+        await OnMudDelete.InvokeAsync(file);
     }
 }
