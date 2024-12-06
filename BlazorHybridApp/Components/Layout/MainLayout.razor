@@ -1,36 +1,51 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+<MudLayout>
+<MudMainContent class="pa-0">
+
+    <div class="page">
+        <div class="sidebar">
+            <NavMenu />
         </div>
 
-        <article class="content px-4">
+        <main>
+            <div class="top-row px-4">
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            </div>
 
-            <ErrorBoundary>
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent Context="exception">
-                    <div class="container mt-3">
-                        <div class="alert alert-danger" role="alert">
-                            😈 A rotten gremlin got us. Sorry!
-                            <div class="mt-3">
-                                @exception.ToString()
+            <article class="content px-4">
+
+                <ErrorBoundary>
+                    <ChildContent>
+                        @Body
+                    </ChildContent>
+                    <ErrorContent Context="exception">
+                        <div class="container mt-3">
+                            <div class="alert alert-danger" role="alert">
+                                😈 A rotten gremlin got us. Sorry!
+                                <div class="mt-3">
+                                    @exception.ToString()
+                                </div>
                             </div>
+
                         </div>
-
-                    </div>
-                </ErrorContent>
+                    </ErrorContent>
 
 
-            </ErrorBoundary>
+                </ErrorBoundary>
 
-        </article>
-    </main>
-</div>
+            </article>
+        </main>
+    </div>
+</MudMainContent>
+</MudLayout>

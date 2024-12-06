@@ -1,16 +1,16 @@
 ﻿/*#if (SampleContent)*/
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Ivy Presto Headline', "Times New Roman", sans-serif;
 }
 
 a, .btn-link {
-    color: #006bb7;
+    color: #12695c;
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: #022E34;
+    border-color: #12695c;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

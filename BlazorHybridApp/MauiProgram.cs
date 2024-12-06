@@ -11,6 +11,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.Hosting;
 using static BlazorHybridApp.Components.Pages.Home;
+using MudBlazor.Services;
+
 
 namespace BlazorHybridApp
 {
@@ -46,6 +48,9 @@ namespace BlazorHybridApp
             builder.Services.AddScoped<FileSyncHttpClient>();
             builder.Services.AddScoped<FileSyncService>();
             builder.Services.AddSingleton<BackgroundTest>();
+            
+
+            builder.Services.AddMudServices();
 
 
 #if WINDOWS
