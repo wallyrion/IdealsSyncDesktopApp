@@ -16,8 +16,16 @@ namespace BlazorHybridApp.Core
             _isStarted = true;
             while (true)
             {
-                await Task.Delay(1000);
-                await fileSyncService.SyncAsync();
+                await Task.Delay(10000);
+
+                try
+                {
+                    await fileSyncService.SyncAsync();
+
+                }
+                catch (Exception e)
+                {
+                }
             }
         }
     }

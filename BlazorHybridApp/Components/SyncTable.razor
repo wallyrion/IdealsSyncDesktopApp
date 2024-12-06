@@ -20,7 +20,7 @@
             <td>
                 @switch (item.Status)
                 {
-                    case SyncStatus.SyncInProgress:
+                    case SyncStatus.IncomingSync or SyncStatus.OutgoingSync:
                         <span class="badge bg-warning text-dark">
                             <i class="bi bi-arrow-repeat"></i> In Progress
                         </span>

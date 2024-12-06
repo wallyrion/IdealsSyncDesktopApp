@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorHybridApp.Core;
@@ -22,7 +23,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var syncPath = folderSelector.SyncPath;
         // Get server files
         var serverFiles = await httpClient.GetFilesAsync();
-        var dbFiles = db.Files.Where(x => x.SyncPath == syncPath).ToList();
+        var dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
 
         // Get local files
         var localFiles = Directory.GetFiles(folderSelector.SyncPath)
@@ -37,7 +38,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var dbFileIds = dbFiles.Select(x => x.SyncedFileId).ToList();
         var serverFilesToCreate = serverFiles.ExceptBy(dbFileIds, f => f.Id);
 
-        // sync files from server that does no exist locally
+        // sync files from server that does not exist locally
         var stubFiles = serverFilesToCreate.Select(x => ConstructStubLocalFile(x, syncPath)).ToList();
         db.Files.AddRange(stubFiles);
         await db.SaveChangesAsync();
@@ -57,7 +58,16 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
 
         foreach (var changedFile in changedFiles)
         {
-            changedFile.Status = SyncStatus.SyncInProgress;
+            changedFile.Status = SyncStatus.OutgoingSync;
+            var content = await File.ReadAllBytesAsync(changedFile.FullPath);
+            db.History.Add(new FileHistoryItem
+            {
+                Id = Guid.NewGuid(),
+                Content = content,
+                ModifiedAt = DateTime.Now,
+                MofifiedBy = state.CurrentUserEmail,
+                File = changedFile
+            });
         }
 
         await db.SaveChangesAsync();
@@ -116,6 +126,15 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         localFile.SyncedAt = DateTime.Now;
         localFile.Status = SyncStatus.Synced;
 
+        db.History.Add(new FileHistoryItem
+        {
+            Content = fileContent,
+            Id = Guid.NewGuid(),
+            ModifiedAt = localFile.LastUpdatedAt.Value,
+            MofifiedBy = state.CurrentUserEmail,
+            File = localFile
+        });
+
         await db.SaveChangesAsync();
         NotifyChanges();
     }
@@ -128,7 +147,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
             Name = serverFile.Name,
             SyncPath = syncPath,
             SyncedFileId = serverFile.Id,
-            Status = SyncStatus.SyncInProgress,
+            Status = SyncStatus.IncomingSync
         };
     }
 
@@ -191,8 +210,18 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
             Id = Guid.NewGuid(),
             Name = fileName,
             LastUpdatedAt = fileInfo.LastWriteTime,
-            Status = SyncStatus.SyncInProgress,
-            SyncPath = syncPath
+            Status = SyncStatus.OutgoingSync,
+            SyncPath = syncPath,
+            History =
+            [
+                new()
+                {
+                    Id = Guid.NewGuid(),
+                    Content = File.ReadAllBytes(localFilePath),
+                    ModifiedAt = fileInfo.LastWriteTime,
+                    MofifiedBy = state.CurrentUserEmail
+                }
+            ]
         };
     }
 

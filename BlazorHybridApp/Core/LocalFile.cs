@@ -12,12 +12,20 @@ public class LocalFile
     
     public SyncStatus Status { get; set; }
     public required string SyncPath { get; set; }
+    
+    public List<FileHistoryItem> History { get; set; }
+    /*public FileHistoryItem CurrentVersion { get; set; }
+    public Guid CurrentVersionId { get; set; }*/
+
+
+    public string FullPath => Path.Combine(SyncPath, Name);
 }
 
 
 public enum SyncStatus
 {
-    SyncInProgress,
+    OutgoingSync,
+    IncomingSync,
     Synced,
     WaitingForDeletion
 }
