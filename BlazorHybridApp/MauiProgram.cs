@@ -51,12 +51,7 @@ namespace BlazorHybridApp
             
 
             builder.Services.AddMudServices();
-
-
-#if WINDOWS
-builder.Services.AddSingleton<IFolderPickerService, WindowsFolderPickerService>();
-#endif
-
+            
 
             builder.Services.AddMauiBlazorWebView();
 
