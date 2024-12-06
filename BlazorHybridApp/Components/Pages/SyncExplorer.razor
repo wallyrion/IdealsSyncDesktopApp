@@ -3,7 +3,7 @@
 @inject ExplorerService ExplorerService
 @inject State State
 
-<SyncTable Items="SyncItems" DeleteItem="DeleteItem">
+<SyncTable Items="SyncItems" DeleteItem="DeleteItem" OnRevertVersion="RevertVersion">
 
 </SyncTable>
 
@@ -38,6 +38,11 @@
     private async Task DeleteItem(LocalFile file)
     {
         await FileSyncService.RemoveFileLocally(file);
+    }
+
+    private async Task RevertVersion(FileHistoryItem item)
+    {
+        await ExplorerService.RevertFileVersion(item);
     }
 
 }

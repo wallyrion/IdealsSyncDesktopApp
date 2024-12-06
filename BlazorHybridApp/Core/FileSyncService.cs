@@ -42,7 +42,11 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var stubFiles = serverFilesToCreate.Select(x => ConstructStubLocalFile(x, syncPath)).ToList();
         db.Files.AddRange(stubFiles);
         await db.SaveChangesAsync();
-        NotifyChanges();
+
+        if (stubFiles.Any())
+        {
+            NotifyChanges();
+        }
 
         var changedFiles = dbFiles.Where(dbFile =>
         {
@@ -58,20 +62,45 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
 
         foreach (var changedFile in changedFiles)
         {
-            changedFile.Status = SyncStatus.OutgoingSync;
-            var content = await File.ReadAllBytesAsync(changedFile.FullPath);
-            db.History.Add(new FileHistoryItem
+            try
             {
-                Id = Guid.NewGuid(),
-                Content = content,
-                ModifiedAt = DateTime.Now,
-                MofifiedBy = state.CurrentUserEmail,
-                File = changedFile
-            });
+                await state.ReadFileContentLock.WaitAsync();
+
+                var content = await File.ReadAllBytesAsync(changedFile.FullPath);
+                var hash = HashHelper.ComputeHash(content);
+
+
+                if (changedFile.CurrentHash == hash)
+                {
+                    continue;
+                }
+
+                changedFile.Status = SyncStatus.OutgoingSync;
+                changedFile.CurrentVersion = Guid.NewGuid();
+                changedFile.CurrentHash = hash;
+                db.History.Add(new FileHistoryItem
+                {
+                    Id = changedFile.CurrentVersion,
+                    Content = content,
+                    ModifiedAt = DateTime.Now,
+                    MofifiedBy = state.CurrentUserEmail,
+                    File = changedFile
+                });
+            }
+            finally
+            {
+                state.ReadFileContentLock.Release();
+            }
+        
+
+           
         }
 
         await db.SaveChangesAsync();
-        NotifyChanges();
+        if (changedFiles.Any())
+        {
+            NotifyChanges();
+        }
 
         foreach (var changedFile in changedFiles)
         {
@@ -89,13 +118,19 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var filesProjections = localFilesToCreate.Select(x => ConstructLocalFile(x, syncPath)).ToList();
         db.Files.AddRange(filesProjections);
         await db.SaveChangesAsync();
-        NotifyChanges();
+        if (filesProjections.Any())
+        {
+            NotifyChanges();
+        }
 
         // find deleted files
         var filesToDelete = dbFiles.Where(x => missingFileNames.Contains(x.Name)).ToList();
         filesToDelete.ForEach(x => x.Status = SyncStatus.WaitingForDeletion);
         await db.SaveChangesAsync();
-        NotifyChanges();
+        if (filesToDelete.Any())
+        {
+            NotifyChanges();
+        }
 
         foreach (var file in filesProjections)
         {
@@ -125,11 +160,13 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         localFile.LastUpdatedAt = fileInfo.LastWriteTime;
         localFile.SyncedAt = DateTime.Now;
         localFile.Status = SyncStatus.Synced;
+        localFile.CurrentVersion = Guid.NewGuid();
+        localFile.CurrentHash = HashHelper.ComputeHash(fileContent);
 
         db.History.Add(new FileHistoryItem
         {
             Content = fileContent,
-            Id = Guid.NewGuid(),
+            Id = localFile.CurrentVersion,
             ModifiedAt = localFile.LastUpdatedAt.Value,
             MofifiedBy = state.CurrentUserEmail,
             File = localFile
@@ -205,6 +242,9 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var localFilePath = Path.Combine(folderSelector.SyncPath!, fileName);
         var fileInfo = new FileInfo(localFilePath);
 
+        var currentVersionId = Guid.NewGuid();
+        var content = File.ReadAllBytes(localFilePath);
+        var currentHash = HashHelper.ComputeHash(File.ReadAllBytes(localFilePath));
         return new LocalFile
         {
             Id = Guid.NewGuid(),
@@ -212,12 +252,14 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
             LastUpdatedAt = fileInfo.LastWriteTime,
             Status = SyncStatus.OutgoingSync,
             SyncPath = syncPath,
+            CurrentHash = currentHash,
+            CurrentVersion = currentVersionId,
             History =
             [
                 new()
                 {
-                    Id = Guid.NewGuid(),
-                    Content = File.ReadAllBytes(localFilePath),
+                    Id = currentVersionId,
+                    Content = content,
                     ModifiedAt = fileInfo.LastWriteTime,
                     MofifiedBy = state.CurrentUserEmail
                 }

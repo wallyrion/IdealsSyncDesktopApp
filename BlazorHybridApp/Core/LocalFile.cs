@@ -14,6 +14,8 @@ public class LocalFile
     public required string SyncPath { get; set; }
     
     public List<FileHistoryItem> History { get; set; }
+    public Guid CurrentVersion { get; set; }
+    public string? CurrentHash { get; set; }
     /*public FileHistoryItem CurrentVersion { get; set; }
     public Guid CurrentVersionId { get; set; }*/
 

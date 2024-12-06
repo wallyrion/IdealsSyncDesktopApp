@@ -8,13 +8,37 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorHybridApp.Core;
 
-public class ExplorerService(IServiceProvider serviceProvider, FolderSelector folderSelector)
+public class ExplorerService(IServiceProvider serviceProvider, FolderSelector folderSelector, State state)
 {
     public async Task<List<LocalFile>> GetAllFiles()
     {
         await using var scope = serviceProvider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        return await db.Files.Where(x => x.SyncPath == folderSelector.SyncPath).ToListAsync();
+        return await db.Files.Include(x => x.History).Where(x => x.SyncPath == folderSelector.SyncPath).ToListAsync();
+    }
+
+    public async Task RevertFileVersion(FileHistoryItem item)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+
+        var file = await db.Files.FirstAsync(x => x.Id == item.FileId);
+
+        try
+        {
+            await state.ReadFileContentLock.WaitAsync();
+            file.CurrentVersion = item.Id;
+            file.CurrentHash = HashHelper.ComputeHash(item.Content);
+            await db.SaveChangesAsync();
+            await File.WriteAllBytesAsync(file.FullPath, item.Content);
+        }
+        finally
+        {
+            state.ReadFileContentLock.Release();
+        }
+
+        state.NotifyNewChanges();
     }
 }

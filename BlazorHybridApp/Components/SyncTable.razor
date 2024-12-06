@@ -3,52 +3,162 @@
 
 <table class="table table-striped table-bordered">
     <thead class="table-light">
-    <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Status</th>
-        <th scope="col">Sync Path</th>
-        <th scope="col">Synced File ID</th>
-        <th scope="col">Synced At</th>
-        <th scope="col">Actions</th>
-    </tr>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Sync Path</th>
+            <th scope="col">Synced File ID</th>
+            <th scope="col">Synced At</th>
+            <th scope="col">Actions</th>
+        </tr>
     </thead>
     <tbody>
-    @foreach (var item in Items)
-    {
-        <tr>
-            <td>@item.Name</td>
-            <td>
-                @switch (item.Status)
-                {
-                    case SyncStatus.IncomingSync or SyncStatus.OutgoingSync:
-                        <span class="badge bg-warning text-dark">
-                            <i class="bi bi-arrow-repeat"></i> In Progress
-                        </span>
-                        break;
-                    case SyncStatus.Synced:
-                        <span class="badge bg-success text-light">
-                            <i class="bi bi-check-circle"></i> Synced
-                        </span>
-                        break;
-                    case SyncStatus.WaitingForDeletion:
-                        <span class="badge bg-danger text-light">
-                            <i class="bi bi-trash"></i> Waiting for Deletion
-                        </span>
-                        break;
-                }
-            </td>
-            <td>@item.SyncPath</td>
-            <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
-            <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
-            <td>
-                <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
-                    <i class="bi bi-trash"></i> Delete
-                </button>
-            </td>
-        </tr>
-    }
+        @foreach (var item in Items)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>
+                    @switch (item.Status)
+                    {
+                        case SyncStatus.IncomingSync or SyncStatus.OutgoingSync:
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-arrow-repeat"></i> In Progress
+                            </span>
+                            break;
+                        case SyncStatus.Synced:
+                            <span class="badge bg-success text-light">
+                                <i class="bi bi-check-circle"></i> Synced
+                            </span>
+                            break;
+                        case SyncStatus.WaitingForDeletion:
+                            <span class="badge bg-danger text-light">
+                                <i class="bi bi-trash"></i> Waiting for Deletion
+                            </span>
+                            break;
+                    }
+                </td>
+                <td>@item.SyncPath</td>
+                <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
+                <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
+                        <i class="bi bi-trash"></i> Delete
+                    </button>
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<MudSlider @bind-Value="Spacing" Min="0" Max="20" Color="Color.Info" Class="mb-6">Spacing: @Spacing.ToString()</MudSlider>
+
+
+
+<MudGrid Spacing="@Spacing" Justify="Justify.SpaceAround">
+    <MudItem>
+        <MudPaper MaxWidth="400px" Elevation="0">
+            <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
+                    @foreach (var item in Items)
+                    {
+                        <MudTreeViewItem CanExpand="@false" Value="@(item.Id.ToString())" >
+                            <BodyContent >
+                                
+                                <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                                    <ActivatorContent>
+                                        @item.Name
+                                    </ActivatorContent>
+                                    <ChildContent>
+                                        <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
+                                        <MudDivider />
+                                        <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
+                                            Delete
+                                        </MudMenuItem>
+
+                                    </ChildContent>
+                                </MudMenu>
+
+                            </BodyContent>
+                        </MudTreeViewItem>
+
+                        
+                        
+
+                    }
+                </MudTreeViewItem>
+
+            </MudTreeView>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Width="500px">
+            SELECTED: @SelectedValue
+
+            <MudExpansionPanels>
+                <MudExpansionPanel Text="History of changes" Expanded="true">
+                    <MudTable Items="@HistoryItems" Dense="true" Hover="true">
+                        <ColGroup>
+                        </ColGroup>
+                        <HeaderContent>
+                            <MudTh>Modified At</MudTh>
+                            <MudTh>Author</MudTh>
+                            <MudTh></MudTh>
+
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.ModifiedAt
+                            </MudTd>
+                            <MudTd>
+                                @context.MofifiedBy
+                            </MudTd>
+                            <MudTd>
+                                <MudTooltip Text="Go to this version">
+                                    <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                </MudTooltip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+@code {
+    public int Spacing { get; set; } = 6;
+
+  
+
+}
+
+@*<MudPaper Width="300px" Elevation="0">
+    <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+        <MudTreeViewItem Value="@("root")" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
+            @foreach (var item in Items)
+            {
+                <MudTreeViewItem Value="@(item.Id.ToString())" Text="item.Name" Icon="@Icons.Custom.FileFormats.FileCode"/>
+            }
+        </MudTreeViewItem>
+
+    </MudTreeView>
+</MudPaper>*@
+
+
+@code {
+    static readonly Guid ParentId = Guid.NewGuid();
+    public string? SelectedValue;
+    public LocalFile? SelectedFile => SelectedValue != null ? Items.FirstOrDefault(i => i.Id == Guid.Parse(SelectedValue)) : null;
+
+    public bool ReadOnly = false;
+
+    List<FileHistoryItem> HistoryItems => SelectedFile?.History ?? [];
+
+}
+
+
 
 
 <MudTable Items="@Items" Dense="true" Hover="true">
@@ -128,6 +238,11 @@
         await DeleteItem.InvokeAsync(item);
     }
     
+    private async Task RevertVersion(FileHistoryItem historyItem)
+    {
+        await OnRevertVersion.InvokeAsync(historyItem);
+    }
+    
     public static string GetFileIcon(string filePath)
     {
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
@@ -160,6 +275,10 @@
     [Parameter]
     public List<LocalFile> Files { get; set; } = new();
 
+    
+    [Parameter]
+    public EventCallback<FileHistoryItem> OnRevertVersion { get; set; }
+    
     [Parameter]
     public EventCallback<LocalFile> OnOpen { get; set; }
 

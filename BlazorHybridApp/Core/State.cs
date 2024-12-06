@@ -8,5 +8,10 @@ public class State
     
     public event Action? SyncStatusChanged;
 
-    public void NotifyNewChanges() => SyncStatusChanged?.Invoke();
+    public SemaphoreSlim ReadFileContentLock = new(1, 1);
+
+    public void NotifyNewChanges()
+    {
+        SyncStatusChanged?.Invoke();
+    }
 }
