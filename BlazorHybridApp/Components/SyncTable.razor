@@ -1,138 +1,209 @@
 ﻿@using System.Globalization
 @using BlazorHybridApp.Core
+@using System.Diagnostics
+@using System.Runtime.InteropServices
+@using System.Runtime.InteropServices.ComTypes
+@using System.Text
+@using Microsoft.Win32
 
-<table class="table table-striped table-bordered">
-    <thead class="table-light">
-        <tr>
-            <th scope="col">Name</th>
-            <th scope="col">Status</th>
-            <th scope="col">Sync Path</th>
-            <th scope="col">Synced File ID</th>
-            <th scope="col">Synced At</th>
-            <th scope="col">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Items)
-        {
+<MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
+    <MudTabPanel Text="One">
+
+        <table class="table table-striped table-bordered">
+            <thead class="table-light">
             <tr>
-                <td>@item.Name</td>
-                <td>
-                    @switch (item.Status)
-                    {
-                        case SyncStatus.IncomingSync or SyncStatus.OutgoingSync:
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-arrow-repeat"></i> In Progress
-                            </span>
-                            break;
-                        case SyncStatus.Synced:
-                            <span class="badge bg-success text-light">
-                                <i class="bi bi-check-circle"></i> Synced
-                            </span>
-                            break;
-                        case SyncStatus.WaitingForDeletion:
-                            <span class="badge bg-danger text-light">
-                                <i class="bi bi-trash"></i> Waiting for Deletion
-                            </span>
-                            break;
-                    }
-                </td>
-                <td>@item.SyncPath</td>
-                <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
-                <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
-                        <i class="bi bi-trash"></i> Delete
-                    </button>
-                </td>
+                <th scope="col">Name</th>
+                <th scope="col">Status</th>
+                <th scope="col">Sync Path</th>
+                <th scope="col">Synced File ID</th>
+                <th scope="col">Synced At</th>
+                <th scope="col">Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+            </thead>
+            <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    <td>@item.Name</td>
+                    <td>
+                        @switch (item.Status)
+                        {
+                            case SyncStatus.IncomingSync or SyncStatus.OutgoingSync:
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-arrow-repeat"></i> In Progress
+                                </span>
+                                break;
+                            case SyncStatus.Synced:
+                                <span class="badge bg-success text-light">
+                                    <i class="bi bi-check-circle"></i> Synced
+                                </span>
+                                break;
+                            case SyncStatus.WaitingForDeletion:
+                                <span class="badge bg-danger text-light">
+                                    <i class="bi bi-trash"></i> Waiting for Deletion
+                                </span>
+                                break;
+                        }
+                    </td>
+                    <td>@item.SyncPath</td>
+                    <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
+                    <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
 
-<MudSlider @bind-Value="Spacing" Min="0" Max="20" Color="Color.Info" Class="mb-6">Spacing: @Spacing.ToString()</MudSlider>
+    </MudTabPanel>
+    <MudTabPanel Text="Two">
+
+        <MudSlider @bind-Value="Spacing" Min="0" Max="20" Color="Color.Info" Class="mb-6">Spacing: @Spacing.ToString()</MudSlider>
 
 
+        <MudGrid Spacing="@Spacing" Justify="Justify.SpaceAround">
+            <MudItem>
+                <MudPaper MaxWidth="400px" Elevation="0">
+                    <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                        <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
+                            @foreach (var item in Items)
+                            {
+                                <MudTreeViewItem CanExpand="@false" Value="@(item.Id.ToString())">
+                                    <BodyContent >
 
-<MudGrid Spacing="@Spacing" Justify="Justify.SpaceAround">
-    <MudItem>
-        <MudPaper MaxWidth="400px" Elevation="0">
-            <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
-                <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
-                    @foreach (var item in Items)
-                    {
-                        <MudTreeViewItem CanExpand="@false" Value="@(item.Id.ToString())" >
-                            <BodyContent >
-                                
-                                <MudMenu ActivationEvent="@MouseEvent.RightClick">
-                                    <ActivatorContent>
-                                        @item.Name
-                                    </ActivatorContent>
-                                    <ChildContent>
-                                        <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
-                                        <MudDivider />
-                                        <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
-                                            Delete
-                                        </MudMenuItem>
+                                        <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                                            <ActivatorContent>
+                                                @item.Name
+                                            </ActivatorContent>
+                                            <ChildContent>
+                                                <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
+                                                <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
+                                                <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
+                                                <MudDivider/>
+                                                <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
+                                                    Delete
+                                                </MudMenuItem>
 
-                                    </ChildContent>
-                                </MudMenu>
+                                            </ChildContent>
+                                        </MudMenu>
 
-                            </BodyContent>
+                                    </BodyContent>
+                                </MudTreeViewItem>
+                            }
                         </MudTreeViewItem>
 
-                        
-                        
+                    </MudTreeView>
+                </MudPaper>
+            </MudItem>
+            <MudItem>
+                <MudPaper Width="500px">
+                    SELECTED: @SelectedValue
 
-                    }
-                </MudTreeViewItem>
+                    <MudExpansionPanels>
+                        <MudExpansionPanel Text="History of changes" Expanded="true">
+                            <MudTable Items="@HistoryItems" Dense="true" Hover="true">
+                                <ColGroup>
+                                </ColGroup>
+                                <HeaderContent>
+                                    <MudTh>Modified At</MudTh>
+                                    <MudTh>Author</MudTh>
+                                    <MudTh></MudTh>
 
-            </MudTreeView>
-        </MudPaper>
-    </MudItem>
-    <MudItem>
-        <MudPaper Width="500px">
-            SELECTED: @SelectedValue
+                                </HeaderContent>
+                                <RowTemplate>
+                                    <MudTd>
+                                        @context.ModifiedAt
+                                    </MudTd>
+                                    <MudTd>
+                                        @context.MofifiedBy
+                                    </MudTd>
+                                    <MudTd>
+                                        <MudTooltip Text="Go to this version">
+                                            <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                        </MudTooltip>
+                                    </MudTd>
+                                </RowTemplate>
+                            </MudTable>
+                        </MudExpansionPanel>
+                    </MudExpansionPanels>
+                </MudPaper>
+            </MudItem>
 
-            <MudExpansionPanels>
-                <MudExpansionPanel Text="History of changes" Expanded="true">
-                    <MudTable Items="@HistoryItems" Dense="true" Hover="true">
-                        <ColGroup>
-                        </ColGroup>
-                        <HeaderContent>
-                            <MudTh>Modified At</MudTh>
-                            <MudTh>Author</MudTh>
-                            <MudTh></MudTh>
+        </MudGrid>
+    </MudTabPanel>
+    <MudTabPanel Text="Three">
 
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>
-                                @context.ModifiedAt
-                            </MudTd>
-                            <MudTd>
-                                @context.MofifiedBy
-                            </MudTd>
-                            <MudTd>
-                                <MudTooltip Text="Go to this version">
-                                    <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
-                                </MudTooltip>
-                            </MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                </MudExpansionPanel>
-            </MudExpansionPanels>
-        </MudPaper>
-    </MudItem>
 
-</MudGrid>
-@code {
-    public int Spacing { get; set; } = 6;
+        <MudTable Items="@Items" Dense="true" Hover="true">
+            <ColGroup>
+                <col style="width: 40px;"/>
+                <col style="width: 50%;"/>
+                <col/>
+                <col/>
+            </ColGroup>
+            <HeaderContent>
+                <MudTh></MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Size</MudTh>
+                <MudTh>Status</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    <MudIcon Icon="@GetFileIcon(context.Name)"/>
+                </MudTd>
+                <MudTd>@context.Name</MudTd>
+            </RowTemplate>
+        </MudTable>
 
-  
+        <div class="d-flex flex-wrap gap-4 pa-4">
+            @foreach (var file in Items)
+            {
+                <MudPaper @key="file.Name"
+                          Class="relative"
+                          Width="180px"
+                          Height="200px"
+                          Elevation="2">
+                    <div class="d-flex flex-column align-center pa-4 h-100">
+                        <MudIcon Icon="@GetFileIcon(file.Name)"
+                                 Size="Size.Large"
+                                 Class="mb-2"/>
 
-}
+                        <MudText Typo="Typo.body1"
+                                 Class="text-center text-truncate px-2"
+                                 Style="max-width: 160px;">
+                            @file.Name
+                        </MudText>
+
+                        @* <div class="mt-auto"> *@
+                        @*     <MudChip Size="Size.Small"  *@
+                        @*              Color="@GetStatusColor(file.Status)" *@
+                        @*               Label="true"> *@
+                        @*         @file.Status *@
+                        @*     </MudChip> *@
+                        @* </div> *@
+
+                        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                 Dense="true"
+                                 Class="absolute top-0 right-0 pa-2">
+                            <MudMenuItem OnClick="@(() => OpenFileAsync(file))">Open</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => ShareFileAsync(file))">Share</MudMenuItem>
+                            <MudMenuItem OnClick="@(() => ShowInFolderAsync(file))">Show in folder</MudMenuItem>
+                            <MudDivider/>
+                            <MudMenuItem OnClick="@(() => DeleteFileAsync(file))"
+                                         Class="text-error">
+                                Delete
+                            </MudMenuItem>
+                        </MudMenu>
+                    </div>
+                </MudPaper>
+            }
+        </div>
+    </MudTabPanel>
+</MudTabs>
+
 
 @*<MudPaper Width="300px" Elevation="0">
     <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
@@ -148,6 +219,8 @@
 
 
 @code {
+    public int Spacing { get; set; } = 6;
+
     static readonly Guid ParentId = Guid.NewGuid();
     public string? SelectedValue;
     public LocalFile? SelectedFile => SelectedValue != null ? Items.FirstOrDefault(i => i.Id == Guid.Parse(SelectedValue)) : null;
@@ -156,77 +229,7 @@
 
     List<FileHistoryItem> HistoryItems => SelectedFile?.History ?? [];
 
-}
 
-
-
-
-<MudTable Items="@Items" Dense="true" Hover="true">
-    <ColGroup>
-        <col style="width: 40px;" />
-        <col style="width: 50%;" />
-        <col />
-        <col />
-    </ColGroup>
-    <HeaderContent>
-        <MudTh></MudTh>
-        <MudTh>Name</MudTh>
-        <MudTh>Size</MudTh>
-        <MudTh>Status</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd>
-            <MudIcon Icon="@GetFileIcon(context.Name)" />
-        </MudTd>
-        <MudTd>@context.Name</MudTd>
-    </RowTemplate>
-</MudTable>
-
-<div class="d-flex flex-wrap gap-4 pa-4">
-    @foreach (var file in Items)
-    {
-        <MudPaper @key="file.Name"
-                  Class="relative"
-                  Width="180px"
-                  Height="200px"
-                  Elevation="2">
-            <div class="d-flex flex-column align-center pa-4 h-100">
-                <MudIcon Icon="@GetFileIcon(file.Name)"
-                         Size="Size.Large"
-                         Class="mb-2" />
-
-                <MudText Typo="Typo.body1"
-                         Class="text-center text-truncate px-2"
-                         Style="max-width: 160px;">
-                    @file.Name
-                </MudText>
-
-                @* <div class="mt-auto"> *@
-                @*     <MudChip Size="Size.Small"  *@
-                @*              Color="@GetStatusColor(file.Status)" *@
-                @*               Label="true"> *@
-                @*         @file.Status *@
-                @*     </MudChip> *@
-                @* </div> *@
-
-                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
-                         Dense="true"
-                         Class="absolute top-0 right-0 pa-2">
-                    <MudMenuItem OnClick="@(() => OpenFileAsync(file))">Open</MudMenuItem>
-                    <MudMenuItem OnClick="@(() => ShareFileAsync(file))">Share</MudMenuItem>
-                    <MudMenuItem OnClick="@(() => ShowInFolderAsync(file))">Show in folder</MudMenuItem>
-                    <MudDivider />
-                    <MudMenuItem OnClick="@(() => DeleteFileAsync(file))"
-                                Class="text-error">
-                        Delete
-                    </MudMenuItem>
-                </MudMenu>
-            </div>
-        </MudPaper>
-    }
-</div>
-
-@code {
     [Parameter]
     public IEnumerable<LocalFile> Items { get; set; } = [];
 
@@ -237,16 +240,16 @@
     {
         await DeleteItem.InvokeAsync(item);
     }
-    
+
     private async Task RevertVersion(FileHistoryItem historyItem)
     {
         await OnRevertVersion.InvokeAsync(historyItem);
     }
-    
+
     public static string GetFileIcon(string filePath)
     {
         string extension = Path.GetExtension(filePath).ToLowerInvariant();
-        
+
         return extension switch
         {
             ".pdf" => Icons.Custom.FileFormats.FilePdf,
@@ -259,7 +262,7 @@
             _ => Icons.Custom.Uncategorized.Empty
             };
     }
-    
+
     public static Color GetStatusColor(SyncStatus status)
     {
         return status switch
@@ -271,14 +274,14 @@
             _ => Color.Default
             };
     }
-    
+
     [Parameter]
     public List<LocalFile> Files { get; set; } = new();
 
-    
+
     [Parameter]
     public EventCallback<FileHistoryItem> OnRevertVersion { get; set; }
-    
+
     [Parameter]
     public EventCallback<LocalFile> OnOpen { get; set; }
 
@@ -290,19 +293,22 @@
 
     [Parameter]
     public EventCallback<LocalFile> OnMudDelete { get; set; }
-    
+
     private async Task OpenFileAsync(LocalFile file)
     {
+        Process.Start("explorer.exe", file.FullPath);
         await OnOpen.InvokeAsync(file);
     }
 
     private async Task ShareFileAsync(LocalFile file)
     {
+        await RegisterContextMenu();
         await OnShare.InvokeAsync(file);
     }
 
     private async Task ShowInFolderAsync(LocalFile file)
     {
+        Process.Start("explorer.exe", $"/select,\"{file.SyncPath}\"");
         await OnShowInFolder.InvokeAsync(file);
     }
 
@@ -310,4 +316,49 @@
     {
         await OnMudDelete.InvokeAsync(file);
     }
+    
+    public async Task RegisterContextMenu()
+    {
+        try
+        {
+            var regCommands = new[]
+            {
+    // Register the application as a handler for .txt files
+                $"reg add \"HKCU\\Software\\Classes\\.txt\" /ve /t REG_SZ /d \"txtfile\" /f",
+                
+                $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\YourApp\" /v \"Icon\" /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\"\" /f",
+    // Add your app to the context menu
+                $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\open\" /ve /t REG_SZ /d \"Open with Ideals...\" /f",
+                $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\YourApp\" /ve /t REG_SZ /d \"Open with Ideals...\" /f",
+                $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\open\\command\" /ve /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f",
+                $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\YourApp\\command\" /ve /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f",
+            };
+            //
+            // var regCommands = new[]
+            // {
+            //    // Directory
+            //     $"reg add \"HKCU\\Software\\Classes\\Directory\\shell\\YourApp\" /v \"\" /t REG_SZ /d \"Open with ideals\" /f",
+            //     $"reg add \"HKCU\\Software\\Classes\\Directory\\shell\\YourApp\\command\" /v \"\" /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f"
+            // };
+
+            foreach (var cmd in regCommands)
+            {
+                using var process = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {cmd}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+            
+                await process.WaitForExitAsync();
+            }
+        
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Failed to register context menu: {ex.Message}");
+        }
+    }
+
 }
