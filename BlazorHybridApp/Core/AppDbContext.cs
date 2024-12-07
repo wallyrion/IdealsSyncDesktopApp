@@ -8,6 +8,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<LocalFile> Files { get; set; }
     
     public DbSet<FileHistoryItem> History { get; set; }
+    public DbSet<AppEvent> AppEvents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,4 +28,11 @@ public class FileHistoryItem
     public required byte[] Content { get; init; } 
     public Guid FileId { get; set; }
     public LocalFile File { get; set; }
+}
+
+public class AppEvent
+{
+    public required Guid Id { get; set; }
+    public required string Name { get; set; }
+    public required string Details { get; set; }
 }
