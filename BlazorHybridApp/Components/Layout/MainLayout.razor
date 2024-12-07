@@ -27,7 +27,11 @@
 
                 <ErrorBoundary>
                     <ChildContent>
-                        @Body
+                        <MudPaper Width="100%">
+                            <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+                                    @Body
+                            </MudContainer>
+                        </MudPaper>
                     </ChildContent>
                     <ErrorContent Context="exception">
                         <div class="container mt-3">

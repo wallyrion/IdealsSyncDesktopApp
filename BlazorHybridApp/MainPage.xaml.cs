@@ -14,7 +14,7 @@ namespace BlazorHybridApp
             
             BindingContext = this;
 
-            AppGlobalState.AppWasClosed += () =>
+            GlobalEvents.AppWasClosed += () =>
             {
                 ShowHideWindow();
             };

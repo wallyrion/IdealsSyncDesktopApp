@@ -46,7 +46,7 @@ namespace YourNamespace.Platforms.Windows
 
                     else
                     {
-                        AppGlobalState.CloseApp();
+                        GlobalEvents.CloseApp();
                     }
                 };
             }));

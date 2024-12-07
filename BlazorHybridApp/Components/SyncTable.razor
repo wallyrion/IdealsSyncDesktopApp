@@ -14,8 +14,6 @@
             <tr>
                 <th scope="col">Name</th>
                 <th scope="col">Status</th>
-                <th scope="col">Sync Path</th>
-                <th scope="col">Synced File ID</th>
                 <th scope="col">Synced At</th>
                 <th scope="col">Actions</th>
             </tr>
@@ -45,13 +43,9 @@
                                 break;
                         }
                     </td>
-                    <td>@item.SyncPath</td>
-                    <td>@(item.SyncedFileId.HasValue ? item.SyncedFileId.ToString() : "N/A")</td>
                     <td>@(item.SyncedAt.HasValue ? item.SyncedAt.Value.ToString("g", CultureInfo.InvariantCulture) : "N/A")</td>
                     <td>
-                        <button class="btn btn-danger btn-sm" @onclick="() => OnDelete(item)">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
+                        <MudIconButton OnClick="() => OnDelete(item)" Color="Color.Warning" Icon="@Icons.Material.Filled.Delete" />
                     </td>
                 </tr>
             }
@@ -343,12 +337,26 @@
                 $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\open\\command\" /ve /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f",
                 $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\YourApp\\command\" /ve /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f",
             };*/
+
+            string exePath = Process.GetCurrentProcess().MainModule.FileName;
+            string icoPath = Path.Combine(Path.GetDirectoryName(exePath), "ideals.ico");
             
              var regCommands = new[]
              {
                 // Directory
-                 $"reg add \"HKCU\\Software\\Classes\\Directory\\shell\\YourApp\" /v \"\" /t REG_SZ /d \"Open with ideals\" /f",
-                 $"reg add \"HKCU\\Software\\Classes\\Directory\\shell\\YourApp\\command\" /v \"\" /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f"
+                $""""
+                 reg add "HKCU\Software\Classes\Directory\shell\YourApp" /v "" /t REG_SZ /d "Sync with ideals" /f 
+                 
+                 """", 
+                $""""
+                 reg add "HKCU\Software\Classes\Directory\shell\YourApp\command" /v "" /t REG_SZ /d "\"{exePath}\" \"%1\"" /f ,
+                 """",
+
+                $""""
+                 reg add "HKCU\Software\Classes\Directory\shell\YourApp" /v "Icon" /t REG_SZ /d "{icoPath}" /f 
+                 
+                 """"
+                 
              };
 
             foreach (var cmd in regCommands)

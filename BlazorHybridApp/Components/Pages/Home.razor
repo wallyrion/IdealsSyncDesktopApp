@@ -8,6 +8,7 @@
 @inject State State
 @inject BackgroundTest BackgroundTest
 
+
 @implements IDisposable
 
 <button class="btn btn-primary" @onclick="PickFolder">Select Folder</button>
@@ -27,7 +28,7 @@
 
     private async Task PickFolder()
     {
-        
+
         await Task.Delay(200);
         var result = await FolderPicker.PickAsync();
 
@@ -39,9 +40,16 @@
         SelectedPath = result.Folder.Path;
         await FolderSelector.SelectNewSyncPath(SelectedPath);
     }
+
+    async void Changed()
+    {
+        SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
+        await InvokeAsync(StateHasChanged);
+    }
     
     protected override async Task OnInitializedAsync()
     {
+        State.SyncStatusChanged += Changed;
         SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
 
         Task.Run(async () => { await BackgroundTest.StartAsync(); });
@@ -49,7 +57,7 @@
 
     public void Dispose()
     {
-        
+        State.SyncStatusChanged -= Changed;
     }
 
 }

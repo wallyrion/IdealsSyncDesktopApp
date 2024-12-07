@@ -2,16 +2,6 @@
 
 namespace BlazorHybridApp.Core;
 
-public static class AppGlobalState
-{
-    public static event Action AppWasClosed;
-
-    public static void CloseApp()
-    {
-        AppWasClosed.Invoke();
-    }
-}
-
 public class State
 {
     public string CurrentUserEmail { get; set; } = "wally@gmail.com";

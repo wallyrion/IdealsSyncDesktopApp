@@ -5,7 +5,9 @@ using H.NotifyIcon;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
+using Microsoft.Maui.Storage;
 using MudBlazor.Services;
+using System.Diagnostics;
 using YourNamespace.Platforms.Windows;
 
 namespace BlazorHybridApp
@@ -33,7 +35,9 @@ namespace BlazorHybridApp
 
             builder.Services.AddDbContext<AppDbContext>(o =>
             {
-                o.UseSqlite($"Filename=app6.db");
+                var dbPath = Process.GetCurrentProcess().MainModule!.FileName.Replace("BlazorHybridApp.exe", "fileRequests.db");
+
+                o.UseSqlite($"Data Source={dbPath}");
             });
 
             builder.Services.AddSingleton<FolderSelector>();
@@ -51,43 +55,8 @@ namespace BlazorHybridApp
             builder.Services.AddScoped<FileSyncService>();
             builder.Services.AddSingleton<BackgroundTest>();
             
-/*#if WINDOWS
-            builder.ConfigureLifecycleEvents(events =>
-            {
-                events.AddWindows(windowsLifecycleBuilder =>
-                {
-                    windowsLifecycleBuilder.OnWindowCreated(window =>
-                    {
-                        //we need this to use Microsoft.UI.Windowing functions for our window
-                        var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
-                        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
-                        var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
-
-                        //and here it is
-                        appWindow.Closing += async (s, e) => 
-                        {
-                            e.Cancel = true;
-                            bool result = await App.Current.MainPage.DisplayAlert(
-                                "Alert title", 
-                                "You sure want to close app?", 
-                                "Yes", 
-                                "Cancel");
-
-                            if (result)
-                            {
-                                App.Current.Quit();
-                            }
-                        };
-                    });
-                });
-            });
-           
-#endif*/
-            
-           
-
             builder.Services.AddMudServices();
-            
+            builder.Services.AddSingleton<GlobalEvents>();
 
             builder.Services.AddMauiBlazorWebView();
 
@@ -103,7 +72,10 @@ namespace BlazorHybridApp
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 dbContext.Database.EnsureCreated();
 
-                
+                var globalevents = scope.ServiceProvider.GetRequiredService<GlobalEvents>();
+                globalevents.Initialize();
+
+
             }
 
             return build;

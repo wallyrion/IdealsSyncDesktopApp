@@ -26,7 +26,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
         var dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
 
         // Get local files
-        var localFiles = Directory.GetFiles(folderSelector.SyncPath)
+        var localFiles = Directory.GetFiles(syncPath)
             .Select(f => new FileInfo(f))
             .ToList();
 
@@ -254,7 +254,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
     private async Task SyncLocalFileToServer(LocalFile file, AppDbContext db, string syncPath)
     {
         await Task.Delay(1000);
-        var path = Path.Combine(folderSelector.SyncPath!, file.Name);
+        var path = Path.Combine(syncPath, file.Name);
         var bytes = await File.ReadAllBytesAsync(path);
         var createdServerFile = await httpClient.UploadFileAsync(file.Name, bytes);
         file.SyncedFileId = createdServerFile.Id;

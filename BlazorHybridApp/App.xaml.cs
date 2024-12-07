@@ -104,7 +104,7 @@ namespace BlazorHybridApp
         
         private void HandleTextFile(string filePath)
         {
-            var a = filePath;
+            GlobalEvents.ProcessFolderContextMenuClick(filePath);
         }
 
         protected override void CleanUp()
