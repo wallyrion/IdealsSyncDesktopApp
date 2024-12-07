@@ -63,7 +63,6 @@
                     {
                         <MudTreeViewItem CanExpand="@false" Value="@(item.Id.ToString())" >
                             <BodyContent >
-                                
                                 <MudMenu ActivationEvent="@MouseEvent.RightClick">
                                     <ActivatorContent>
                                         @item.Name
@@ -98,7 +97,7 @@
 
             <MudExpansionPanels>
                 <MudExpansionPanel Text="History of changes" Expanded="true">
-                    <MudTable Items="@HistoryItems" Dense="true" Hover="true">
+                    <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
                         <ColGroup>
                         </ColGroup>
                         <HeaderContent>
@@ -130,7 +129,15 @@
 @code {
     public int Spacing { get; set; } = 6;
 
-  
+    private string ApplyCurrentVersionRowStyle(FileHistoryItem item, int index)
+    {
+        if (SelectedFile?.CurrentVersion != item.Id)
+        {
+            return "";
+        }
+
+        return "background: #9bfdd5";
+    }
 
 }
 

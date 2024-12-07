@@ -6,9 +6,11 @@ public class LocalFile
 {
     public required Guid Id { get; set; }
     public required string Name { get; set; }
+    public required string LastModifiedBy { get; set; }
     public int? SyncedFileId { get; set; }
     public DateTime? SyncedAt { get; set; }
     public DateTime? LastUpdatedAt { get; set; }
+    public DateTime? LastUpdatedServerTime { get; set; }
     
     public SyncStatus Status { get; set; }
     public required string SyncPath { get; set; }

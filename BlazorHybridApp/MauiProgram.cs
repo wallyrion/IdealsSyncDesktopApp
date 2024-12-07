@@ -31,7 +31,7 @@ namespace BlazorHybridApp
 
             builder.Services.AddDbContext<AppDbContext>(o =>
             {
-                o.UseSqlite($"Filename=app4.db");
+                o.UseSqlite($"Filename=app6.db");
             });
 
             builder.Services.AddSingleton<FolderSelector>();

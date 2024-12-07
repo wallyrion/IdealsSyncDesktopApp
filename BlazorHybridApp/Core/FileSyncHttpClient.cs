@@ -10,10 +10,12 @@ namespace BlazorHybridApp.Core;
 public class FileSyncHttpClient
 {
     private readonly HttpClient _client;
+    private readonly State _state;
 
-    public FileSyncHttpClient(HttpClient client)
+    public FileSyncHttpClient(HttpClient client, State state)
     {
         _client = client;
+        _state = state;
     }
 
     public async Task<List<ServerFile>> GetFilesAsync(int page = 1, int pageSize = 100)
@@ -25,27 +27,9 @@ public class FileSyncHttpClient
         return result ?? [];
     }
     
-    public async Task UploadFileAsync(string filePath)
-    {
-        var fileName = Path.GetFileName(filePath);
-        using var content = new MultipartFormDataContent();
-
-        var bytes = await File.ReadAllBytesAsync(filePath);
-
-        using var streamFromBytes = new MemoryStream(bytes);
-        using var streamContent = new StreamContent(streamFromBytes);
-
-        var contentType = ContentTypeHelper.GetMimeType(Path.GetExtension(fileName));
-        streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
-        content.Add(streamContent, "file", fileName);
-
-        var response = await _client.PostAsync("/files/upload", content);
-        var responseContent = await response.Content.ReadAsStringAsync();
-        response.EnsureSuccessStatusCode();
-    }  
-    
     public async Task<ServerFile> UploadFileAsync(string fileName, byte[] fileContent)
     {
+        var modifiedBy = _state.CurrentUserEmail;
         using var streamFromBytes = new MemoryStream(fileContent);
         using var content = new MultipartFormDataContent();
         using var streamContent = new StreamContent(streamFromBytes);
@@ -54,7 +38,7 @@ public class FileSyncHttpClient
         streamContent.Headers.ContentType = new MediaTypeHeaderValue(contentType);
         content.Add(streamContent, "file", fileName);
 
-        var response = await _client.PostAsync("/files/upload", content);
+        var response = await _client.PostAsync($"/files/upload?modifiedBy={modifiedBy}", content);
         response.EnsureSuccessStatusCode();
         var file = await response.Content.ReadFromJsonAsync<ServerFile>();
 

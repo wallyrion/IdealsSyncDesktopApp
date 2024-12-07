@@ -1,13 +1,16 @@
 ﻿@page "/counter"
+@using System.ComponentModel.DataAnnotations
+@using BlazorHybridApp.Core
+@inject State state
 
 <h1>Settings</h1>
 
 <MudExpansionPanels>
     <MudExpansionPanel Text="Panel One" MaxHeight="150" Expanded="true">
-        
-    <p role="status">Current count: @currentCount</p>
 
-    <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+        <p role="status">Current count: @currentCount</p>
+
+        <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
     </MudExpansionPanel>
     <MudExpansionPanel Text="Panel Two" MaxHeight="500">
         Panel Two Content
@@ -17,7 +20,7 @@
     </MudExpansionPanel>
     <MudExpansionPanel Text="Panel Four">
         Panel Four Content
-        
+
         @* <MudRadioGroup > *@
         @*     <MudRadio Value="true" Color="Color.Primary" Dense="true">Dense</MudRadio> *@
         @*     <MudRadio Value="false" Color="Color.Secondary" Dense="false">Normal</MudRadio> *@
@@ -26,7 +29,54 @@
 </MudExpansionPanels>
 
 
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="7" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Email" Class="mt-3"
+                    @bind-Value="model.Email" For="@(() => model.Email)"/>
+                    <MudTextField Label="Password" HelperText="Enter your password" Class="mt-3"
+                    @bind-Value="model.Password" For="@(() => model.Password)" InputType="InputType.Password"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Log in</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
 @code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        model.Email = state.CurrentUserEmail;
+    }
+
+    RegisterAccountForm model = new RegisterAccountForm();
+    bool success;
+
+    public class RegisterAccountForm
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+
+    }
+
+    private void OnValidSubmit(EditContext context)
+    {
+        success = true;
+        state.CurrentUserEmail = model.Email;
+        StateHasChanged();
+    }
+
+
     private int currentCount = 0;
 
     private void IncrementCount()
