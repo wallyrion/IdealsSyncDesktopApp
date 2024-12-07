@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
 using BlazorHybridApp.Core;
+using H.NotifyIcon.Apps.Maui;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Maui.Platform;
 
@@ -17,11 +18,14 @@ namespace BlazorHybridApp
         
         public App()
         {
+            //InitializeComponent();
+
             
             InitializeComponent();
             var services = new ServiceCollection();
+            var mainModule = Process.GetCurrentProcess().MainModule;
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite($"Data Source={Process.GetCurrentProcess().MainModule.FileName.Replace("BlazorHybridApp.exe","fileRequests.db")}"));
+                options.UseSqlite($"Data Source={mainModule.FileName.Replace("BlazorHybridApp.exe","fileRequests.db")}"));
             Services = services;
         }
 
@@ -61,8 +65,15 @@ namespace BlazorHybridApp
             // Start listening for file open requests in a background task
             ListenForFileOpenRequests();
 
-            return new Window(new MainPage()) { Title = "BlazorHybridApp" };
+            //return new Window(new MainPage()) { Title = "BlazorHybridApp" };
+            
+            return new Window(new AppShell());
         }
+        
+        /*protected override Window CreateWindow(IActivationState? activationState)
+        {
+            
+        }*/
 
         private void ListenForFileOpenRequests()
         {

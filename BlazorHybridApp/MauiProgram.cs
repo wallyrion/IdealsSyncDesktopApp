@@ -1,18 +1,12 @@
-﻿using System;
-using System.Net.Http;
-using System.Threading.Tasks;
-using BlazorHybridApp.Components;
-using BlazorHybridApp.Core;
+﻿using BlazorHybridApp.Core;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
+using H.NotifyIcon;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.Hosting;
-using Microsoft.Maui.Hosting;
-using static BlazorHybridApp.Components.Pages.Home;
+using Microsoft.Maui.LifecycleEvents;
 using MudBlazor.Services;
-
+using YourNamespace.Platforms.Windows;
 
 namespace BlazorHybridApp
 {
@@ -22,8 +16,16 @@ namespace BlazorHybridApp
         {
             var builder = MauiApp.CreateBuilder();
             builder
+
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
+                .UseNotifyIcon()
+                .ConfigureLifecycleEvents(e =>
+                {
+#if WINDOWS
+                    e.ConfigureMinimizeToTray();
+#endif
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -49,6 +51,40 @@ namespace BlazorHybridApp
             builder.Services.AddScoped<FileSyncService>();
             builder.Services.AddSingleton<BackgroundTest>();
             
+/*#if WINDOWS
+            builder.ConfigureLifecycleEvents(events =>
+            {
+                events.AddWindows(windowsLifecycleBuilder =>
+                {
+                    windowsLifecycleBuilder.OnWindowCreated(window =>
+                    {
+                        //we need this to use Microsoft.UI.Windowing functions for our window
+                        var handle = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                        var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(handle);
+                        var appWindow = Microsoft.UI.Windowing.AppWindow.GetFromWindowId(id);
+
+                        //and here it is
+                        appWindow.Closing += async (s, e) => 
+                        {
+                            e.Cancel = true;
+                            bool result = await App.Current.MainPage.DisplayAlert(
+                                "Alert title", 
+                                "You sure want to close app?", 
+                                "Yes", 
+                                "Cancel");
+
+                            if (result)
+                            {
+                                App.Current.Quit();
+                            }
+                        };
+                    });
+                });
+            });
+           
+#endif*/
+            
+           
 
             builder.Services.AddMudServices();
             

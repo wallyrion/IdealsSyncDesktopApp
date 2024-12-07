@@ -5,7 +5,8 @@
              x:Class="BlazorHybridApp.App">
     <Application.Resources>
         <ResourceDictionary>
-
+            
+            
         <!--
             For information about styling .NET MAUI pages
             please refer to the documentation:
