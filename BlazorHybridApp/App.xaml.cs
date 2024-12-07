@@ -67,7 +67,16 @@ namespace BlazorHybridApp
 
             //return new Window(new MainPage()) { Title = "BlazorHybridApp" };
             
-            return new Window(new AppShell());
+            var window = new Window(new AppShell());
+
+
+            window.Width = 1000;
+            window.Height = 800;
+            window.MinimumWidth = 600;
+            window.MinimumHeight = 600;
+
+
+            return window;
         }
         
         /*protected override Window CreateWindow(IActivationState? activationState)
