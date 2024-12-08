@@ -80,9 +80,14 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
                 
                 db.History.Add(new FileHistoryItem
                 {
+                    FileContent = new FileContent
+                    {
+                        Content = fileContentFromServer,
+                        HistoryId = f.DbFile.CurrentVersion,
+                    },
                     Id = f.DbFile.CurrentVersion,
                     File = f.DbFile,
-                    Content = fileContentFromServer,
+                    Size = fileContentFromServer.LongLength,
                     MofifiedBy = f.ServerFile.LastModifiedBy,
                     ModifiedAt = fileMetadata.LastWriteTime
                 });
@@ -135,8 +140,13 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
                 changedFile.LastUpdatedAt = fileInfo.LastWriteTime;
                 db.History.Add(new FileHistoryItem
                 {
+                    FileContent = new FileContent
+                    {
+                        Content = content,
+                        HistoryId = changedFile.CurrentVersion
+                    },
+                    Size = content.LongLength,
                     Id = changedFile.CurrentVersion,
-                    Content = content,
                     ModifiedAt = DateTime.Now,
                     MofifiedBy = state.CurrentUserEmail,
                     File = changedFile
@@ -238,7 +248,12 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
         db.History.Add(new FileHistoryItem
         {
-            Content = fileContent,
+            FileContent = new FileContent
+            {
+                Content = fileContent,
+                HistoryId = localFile.CurrentVersion
+            },
+            Size = fileContent.LongLength,
             Id = localFile.CurrentVersion,
             ModifiedAt = localFile.LastUpdatedAt.Value,
             MofifiedBy = localFile.LastModifiedBy,
@@ -334,8 +349,13 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
             [
                 new()
                 {
+                    Size = content.LongLength,
                     Id = currentVersionId,
-                    Content = content,
+                    FileContent = new FileContent
+                    {
+                        HistoryId = currentVersionId,
+                        Content = content
+                    },
                     ModifiedAt = fileInfo.LastWriteTime,
                     MofifiedBy = state.CurrentUserEmail,
                 }

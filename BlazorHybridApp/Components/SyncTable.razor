@@ -93,6 +93,7 @@
                         <HeaderContent>
                             <MudTh>Modified At</MudTh>
                             <MudTh>Author</MudTh>
+                            <MudTh>Size</MudTh>
                             <MudTh></MudTh>
                         </HeaderContent>
                         <RowTemplate>
@@ -101,6 +102,9 @@
                             </MudTd>
                             <MudTd>
                                 @context.MofifiedBy
+                            </MudTd>      
+                            <MudTd>
+                                @GetFileSize(context)
                             </MudTd>
                             <MudTd>
                                 @if (SelectedFile.CurrentVersion != context.Id)
@@ -399,13 +403,22 @@
         // Find the current version of the file in the history
         var historyItem = file.History.FirstOrDefault(x => x.Id == file.CurrentVersion);
 
-        if (historyItem == null || historyItem.Content == null)
+        if (historyItem == null)
         {
             return "Unknown size";
         }
 
         // Get the size of the content in bytes
-        long sizeInBytes = historyItem.Content.Length;
+        long sizeInBytes = historyItem.Size;
+
+        // Convert size to a human-readable format
+        return ConvertSizeToReadableFormat(sizeInBytes);
+    }
+
+    public static string GetFileSize(FileHistoryItem historyItem)
+    {
+        // Get the size of the content in bytes
+        long sizeInBytes = historyItem.Size;
 
         // Convert size to a human-readable format
         return ConvertSizeToReadableFormat(sizeInBytes);

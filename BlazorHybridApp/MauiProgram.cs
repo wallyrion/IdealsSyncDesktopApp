@@ -48,7 +48,7 @@ namespace BlazorHybridApp
             builder.Services.AddScoped(sp =>
                 new HttpClient
                 {
-                    BaseAddress = new Uri("http://localhost:4300/")
+                    BaseAddress = new Uri("https://8f3d-212-15-178-0.ngrok-free.app/")
                 });
 
             builder.Services.AddScoped<FileSyncHttpClient>();
