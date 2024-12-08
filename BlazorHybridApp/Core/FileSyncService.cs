@@ -33,9 +33,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         var dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
 
         // Get local files
-        var localFiles = Directory.GetFiles(syncPath)
-            .Select(f => new FileInfo(f))
-            .ToList();
+        var localFiles = GetLocalFileNames(syncPath);
 
         var localFileNames = localFiles.Select(x => x.Name).ToList();
 
@@ -143,21 +141,27 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
                     MofifiedBy = state.CurrentUserEmail,
                     File = changedFile
                 });
+                await db.SaveChangesAsync();
                 NotifyChanges();
 
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw;
+                Console.WriteLine(e);
             }
             finally
             {
                 state.ReadFileContentLock.Release();
             }
 
-            if (changedFile.SyncedFileId is not null)
+            /*if (changedFile.SyncedFileId is not null)
             {
                 await httpClient.DeleteFileAsync(changedFile.SyncedFileId.Value);
+            }*/
+
+            if (content == null)
+            {
+                return;
             }
 
             var createdServerFile = await httpClient.UploadFileAsync(changedFile.Name, content);
@@ -165,6 +169,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
             changedFile.SyncedFileId = createdServerFile.Id;
             changedFile.Status = SyncStatus.Synced;
             changedFile.SyncedAt = DateTime.Now;
+
             await db.SaveChangesAsync();
             NotifyChanges();
 
@@ -219,7 +224,6 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
     private async Task SyncServerFileToLocalSystem(LocalFile localFile, AppDbContext db, List<ServerFile> serverFiles)
     {
         var serverFileMetadata = serverFiles.First(x => x.Id == localFile.SyncedFileId);
-        await Task.Delay(1000);
         var fileContent = await httpClient.DownloadFileAsync(localFile.SyncedFileId!.Value);
         var localFilePath = Path.Combine(localFile.SyncPath, localFile.Name);
         await File.WriteAllBytesAsync(localFilePath, fileContent);
@@ -245,6 +249,18 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         NotifyChanges();
     }
 
+    private List<FileInfo> GetLocalFileNames(string syncPath)
+    {
+        var localFiles =
+            Directory.GetFiles(syncPath, "*.*", SearchOption.TopDirectoryOnly)
+                .Where(f => !Path.GetFileName(f).StartsWith("~$"))
+                .Select(f => new FileInfo(f))
+                .ToList();
+        ;
+
+        return localFiles;
+    }
+
     private LocalFile ConstructStubLocalFile(ServerFile serverFile, string syncPath)
     {
         return new LocalFile
@@ -260,7 +276,6 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
     private async Task SyncLocalFileToServer(LocalFile file, AppDbContext db, string syncPath)
     {
-        await Task.Delay(1000);
         var path = Path.Combine(syncPath, file.Name);
         var bytes = await File.ReadAllBytesAsync(path);
         var createdServerFile = await httpClient.UploadFileAsync(file.Name, bytes);
@@ -279,7 +294,6 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
     private async Task RemoveFileFromServer(LocalFile file, AppDbContext db)
     {
-        await Task.Delay(1000);
         if (file.SyncedFileId is not null)
         {
             await httpClient.DeleteFileAsync(file.SyncedFileId.Value);

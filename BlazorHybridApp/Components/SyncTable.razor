@@ -56,33 +56,56 @@
     </MudItem>
     <MudItem>
         <MudPaper Width="500px" Elevation="0">
-            <MudAlert Severity="Severity.Normal">                        @SelectedFile?.Name
-            </MudAlert>
+            @if (SelectedFile != null)
+            {
+                <MudGrid Justify="Justify.SpaceBetween" Class="pa-2">
+                    <MudItem>
+                        <MudText Typography="Typo.subtitle1" Class="font-weight-bold">
+                            <MudIcon Icon="@GetFileIcon(SelectedFile)"></MudIcon>
+                            @SelectedFile?.Name
+                        </MudText>
+                    </MudItem>
+                    <MudItem>
+                        <MudText Typography="Typo.body2" Class="text-secondary">
+                            @GetFileSize(SelectedFile)
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+
+            }
+      
+            @*<MudAlert Severity="Severity.Normal">
+
+            </MudAlert>*@
 
             <!-- Add a scrollable container for the history -->
-            <div style="max-height: 80vh; overflow-y: auto;">
-                <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
-                    <ColGroup></ColGroup>
-                    <HeaderContent>
-                        <MudTh>Modified At</MudTh>
-                        <MudTh>Author</MudTh>
-                        <MudTh></MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd>
-                            @context.ModifiedAt
-                        </MudTd>
-                        <MudTd>
-                            @context.MofifiedBy
-                        </MudTd>
-                        <MudTd>
-                            <MudTooltip Text="Go to this version">
-                                <MudIconButton OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
-                            </MudTooltip>
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
-            </div>
+            @if (SelectedFile != null)
+            {
+                <div style="max-height: 80vh; overflow-y: auto;">
+                    <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
+                        <ColGroup></ColGroup>
+                        <HeaderContent>
+                            <MudTh>Modified At</MudTh>
+                            <MudTh>Author</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.ModifiedAt
+                            </MudTd>
+                            <MudTd>
+                                @context.MofifiedBy
+                            </MudTd>
+                            <MudTd>
+                                <MudTooltip Text="Go to this version">
+                                    <MudIconButton OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                </MudTooltip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+
+            }
         </MudPaper>
     </MudItem>
 
@@ -359,6 +382,42 @@
             _ => Icons.Custom.FileFormats.FileCode
             };
     }
+    
+    public static string GetFileSize(LocalFile file)
+    {
+        // Find the current version of the file in the history
+        var historyItem = file.History.FirstOrDefault(x => x.Id == file.CurrentVersion);
+
+        if (historyItem == null || historyItem.Content == null)
+        {
+            return "Unknown size";
+        }
+
+        // Get the size of the content in bytes
+        long sizeInBytes = historyItem.Content.Length;
+
+        // Convert size to a human-readable format
+        return ConvertSizeToReadableFormat(sizeInBytes);
+    }
+
+    private static string ConvertSizeToReadableFormat(long sizeInBytes)
+    {
+        string[] sizeUnits = { "B", "KB", "MB", "GB", "TB" };
+        double size = sizeInBytes;
+        int unitIndex = 0;
+
+        while (size >= 1024 && unitIndex < sizeUnits.Length - 1)
+        {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        // Use no decimal places for whole numbers, and two for fractional sizes
+        return size % 1 == 0 
+            ? $"{(int)size} {sizeUnits[unitIndex]}" 
+            : $"{size:F2} {sizeUnits[unitIndex]}";
+    }
+
 
     /*public static Color GetStatusColor(SyncStatus status)
     {
@@ -472,14 +531,14 @@
         }
     }
 
-    private (string, MudBlazor.Color, string tooltip, string animationClass) GetIconStatus(LocalFile item)
+    private (string, Color, string tooltip, string animationClass) GetIconStatus(LocalFile item)
     {
         return item.Status switch
         {
-            SyncStatus.OutgoingSync => (Icons.Material.Filled.Upgrade, MudBlazor.Color.Primary, "Uploading to server", "bounce-up"),
-            SyncStatus.IncomingSync => (Icons.Material.Filled.VerticalAlignBottom, MudBlazor.Color.Primary, "Downloading from server", "bounce-down"),
-            SyncStatus.Synced => (Icons.Material.Filled.Verified, MudBlazor.Color.Success, "Successfully synced", "synced"),
-            SyncStatus.WaitingForDeletion => (Icons.Material.Filled.Cancel, MudBlazor.Color.Error, "Waiting for removal", ""),
+            SyncStatus.OutgoingSync => (Icons.Material.Filled.Upgrade, Color.Primary, "Uploading to server", "bounce-up"),
+            SyncStatus.IncomingSync => (Icons.Material.Filled.VerticalAlignBottom, Color.Primary, "Downloading from server", "bounce-down"),
+            SyncStatus.Synced => (Icons.Material.Filled.Verified, Color.Success, "Successfully synced", "synced"),
+            SyncStatus.WaitingForDeletion => (Icons.Material.Filled.Cancel, Color.Error, "Waiting for removal", "blink"),
             _ => throw new ArgumentOutOfRangeException()
         };
     }

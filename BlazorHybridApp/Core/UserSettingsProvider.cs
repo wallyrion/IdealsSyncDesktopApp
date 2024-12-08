@@ -9,6 +9,7 @@ public class UserSettings
 {
     public string? Email { get; set; }
     public string? SyncPath { get; set; }
+    public int OperationDelay { get; set; } = 1500;
 }
 
 public class UserSettingsProvider(IServiceProvider serviceProvider, State state)
@@ -16,6 +17,13 @@ public class UserSettingsProvider(IServiceProvider serviceProvider, State state)
     public string? SyncPath => UserSettings.SyncPath;
     public UserSettings UserSettings { get; set; }
 
+    public async Task<int> GetOperationDelayAsync()
+    {
+        var settings = await GetUserSettingsAsync();
+
+        return settings?.OperationDelay ?? 0;
+    }
+    
     public async Task<UserSettings?> GetUserSettingsAsync()
     {
         await using var scope = serviceProvider.CreateDbContextScoped(out var dbContext);
@@ -39,6 +47,7 @@ public class UserSettingsProvider(IServiceProvider serviceProvider, State state)
         }
 
         UserSettings = userSettings!;
+        state.CurrentUserEmail = userSettings?.Email;
 
         return userSettings;
     }
@@ -68,6 +77,7 @@ public class UserSettingsProvider(IServiceProvider serviceProvider, State state)
 
         await dbContext.SaveChangesAsync();
         UserSettings = userSettings;
+        state.CurrentUserEmail = userSettings.Email;
         state.NotifyNewSettingsChanges();
     }
 

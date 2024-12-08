@@ -11,15 +11,20 @@ public class FileSyncHttpClient
 {
     private readonly HttpClient _client;
     private readonly State _state;
+    private readonly UserSettingsProvider _userSettingsProvider;
 
-    public FileSyncHttpClient(HttpClient client, State state)
+    public FileSyncHttpClient(HttpClient client, State state, UserSettingsProvider userSettingsProvider)
     {
         _client = client;
         _state = state;
+        _userSettingsProvider = userSettingsProvider;
     }
 
     public async Task<List<ServerFile>> GetFilesAsync(int page = 1, int pageSize = 100)
     {
+        var delay = await _userSettingsProvider.GetOperationDelayAsync();
+        await Task.Delay(delay);
+        
         var response = await _client.GetAsync($"/files?page={page}&pageSize={pageSize}");
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<ServerFile>>();
@@ -29,6 +34,9 @@ public class FileSyncHttpClient
     
     public async Task<ServerFile> UploadFileAsync(string fileName, byte[] fileContent)
     {
+        var delay = await _userSettingsProvider.GetOperationDelayAsync();
+        await Task.Delay(delay);
+        
         var modifiedBy = _state.CurrentUserEmail;
         using var streamFromBytes = new MemoryStream(fileContent);
         using var content = new MultipartFormDataContent();
@@ -47,6 +55,9 @@ public class FileSyncHttpClient
 
     public async Task<byte[]> DownloadFileAsync(int fileId)
     {
+        var delay = await _userSettingsProvider.GetOperationDelayAsync();
+        await Task.Delay(delay);
+        
         var response = await _client.GetAsync($"/files/download/{fileId}");
         response.EnsureSuccessStatusCode();
         var fileBytes = await response.Content.ReadAsByteArrayAsync();
@@ -57,6 +68,9 @@ public class FileSyncHttpClient
 
     public async Task DeleteFileAsync(int fileId)
     {
+        var delay = await _userSettingsProvider.GetOperationDelayAsync();
+        await Task.Delay(delay);
+        
         var response = await _client.DeleteAsync($"/files/{fileId}");
         response.EnsureSuccessStatusCode();
     }

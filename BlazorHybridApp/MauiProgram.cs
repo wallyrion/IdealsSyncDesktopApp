@@ -48,7 +48,7 @@ namespace BlazorHybridApp
             builder.Services.AddScoped(sp =>
                 new HttpClient
                 {
-                    BaseAddress = new Uri("http://localhost:5238/")
+                    BaseAddress = new Uri("http://localhost:4300/")
                 });
 
             builder.Services.AddScoped<FileSyncHttpClient>();

@@ -104,8 +104,12 @@ h1:focus {
     }
 }
 
+.full-width {
+    width: 100%;
+}
+
 .bounce-down {
-    animation: bounceDown 1s infinite ease-in-out;
+    animation: bounceDown 1.5s infinite ease-in-out;
 }
 
 @keyframes bounceDown {
@@ -113,13 +117,13 @@ h1:focus {
         transform: translateY(0);
     }
     50% {
-        transform: translateY(10px);
+        transform: translateY(5px);
     }
 }
 
 /* Bounce Up (Upload Animation) */
 .bounce-up {
-    animation: bounceUp 1s infinite ease-in-out;
+    animation: bounceUp 1.5s infinite ease-in-out;
 }
 
 @keyframes bounceUp {
@@ -127,6 +131,19 @@ h1:focus {
         transform: translateY(0);
     }
     50% {
-        transform: translateY(-10px);
+        transform: translateY(-5px);
+    }
+}
+
+.blink {
+    animation: blinkEffect 1.5s infinite ease-in-out;
+}
+
+@keyframes blinkEffect {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
     }
 }

@@ -34,6 +34,10 @@ public class ExplorerService(IServiceProvider serviceProvider, UserSettingsProvi
             await db.SaveChangesAsync();
             await File.WriteAllBytesAsync(file.FullPath, item.Content);
         }
+        catch (Exception e)
+        {
+            Console.WriteLine("RevertFileVersion", e);
+        }
         finally
         {
             state.ReadFileContentLock.Release();
