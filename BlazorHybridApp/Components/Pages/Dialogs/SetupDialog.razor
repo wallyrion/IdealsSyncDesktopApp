@@ -1,0 +1,71 @@
+﻿@using BlazorHybridApp.Core
+@using CommunityToolkit.Maui.Storage
+@inject IFolderPicker FolderPicker
+@inject UserSettingsProvider UserSettingsProvider
+
+<MudDialog >
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1" Align="Align.Center" GutterBottom>
+            Please set up your environment to enable sync with the server.
+        </MudText>
+
+        @if (_account != null)
+        {
+            <MudAlert Severity="Severity.Success" Class="my-2" Variant="Variant.Filled">
+                Logged in as @_account.Email
+            </MudAlert>
+
+            <MudGrid Justify="Justify.Center">
+                <MudItem xs="12">
+                    <MudButton OnClick="PickFolder" Class="full-width" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CloudUpload">
+                        Select folder for synchronization
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        }
+        else
+        {
+            <LoginForm LoginCompeted="LoginCompleted"></LoginForm>
+        }
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private LoginAccountForm? _account;
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private async Task LoginCompleted(LoginAccountForm account)
+    {
+        _account = account;
+    }
+
+    private async Task PickFolder()
+    {
+        var result = await FolderPicker.PickAsync();
+
+        if (result.Folder is null)
+        {
+            return;
+        }
+
+        var path = result.Folder.Path;
+
+        if (path == null)
+        {
+            return;
+        }
+
+        var userSettings = new UserSettings
+        {
+            Email = _account.Email,
+            SyncPath = path
+        };
+        await UserSettingsProvider.UpdateUserSettingsAsync(userSettings);
+        MudDialog.Close();
+    }
+
+}

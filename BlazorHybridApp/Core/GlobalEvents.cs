@@ -46,10 +46,10 @@ public class GlobalEvents
 
             await using var scope = _di.CreateAsyncScope();
 
-            var folderSelector = scope.ServiceProvider.GetRequiredService<FolderSelector>();
+            var folderSelector = scope.ServiceProvider.GetRequiredService<UserSettingsProvider>();
             var state = scope.ServiceProvider.GetRequiredService<State>();
 
-            await folderSelector.SelectNewSyncPath(path);
+            await folderSelector.SelectNewSyncPathAsync(path);
             state.NotifyNewChanges();
 
 

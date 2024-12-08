@@ -1,0 +1,38 @@
+﻿<style>
+    .full-width-form {
+        width: 100%; /* Ensures the form takes the full width */
+        max-width: none; /* Removes any default max-width restriction */
+        padding: 1rem; /* Adds consistent padding for aesthetics */
+        margin: 0 auto; /* Centers the form on the page */
+        box-sizing: border-box; /* Ensures padding doesn't affect overall width */
+    }
+</style>
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit" class="full-width-form">
+    <DataAnnotationsValidator/>
+    <MudCard Class="full-width-form">
+        <MudCardContent>
+            <MudTextField Label="Email" Class="mt-3"
+                          @bind-Value="model.Email" For="@(() => model.Email)" />
+            <MudTextField Label="Password" HelperText="Enter your password" Class="mt-3"
+                          @bind-Value="model.Password" For="@(() => model.Password)" InputType="InputType.Password" />
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">
+                Log in
+            </MudButton>
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<LoginAccountForm> LoginCompeted { get; set; }
+
+    private LoginAccountForm model = new LoginAccountForm();
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        await LoginCompeted.InvokeAsync(model);
+    }
+}

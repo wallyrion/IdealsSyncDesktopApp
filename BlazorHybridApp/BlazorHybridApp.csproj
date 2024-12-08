@@ -77,4 +77,8 @@
         <PackageReference Include="MudBlazor" Version="8.0.0-preview.5" />
     </ItemGroup>
 
+    <ItemGroup>
+      <AdditionalFiles Include="Components\Pages\Dialogs\SetupDialog.razor" />
+    </ItemGroup>
+
 </Project>

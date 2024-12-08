@@ -70,7 +70,7 @@ namespace BlazorHybridApp
             var window = new Window(new AppShell());
 
 
-            window.Width = 1000;
+            window.Width = 1400;
             window.Height = 800;
             window.MinimumWidth = 600;
             window.MinimumHeight = 600;

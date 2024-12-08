@@ -8,14 +8,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorHybridApp.Core;
 
-public class ExplorerService(IServiceProvider serviceProvider, FolderSelector folderSelector, State state)
+public class ExplorerService(IServiceProvider serviceProvider, UserSettingsProvider userSettingsProvider, State state)
 {
     public async Task<List<LocalFile>> GetAllFiles()
     {
         await using var scope = serviceProvider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        return await db.Files.Include(x => x.History).Where(x => x.SyncPath == folderSelector.SyncPath).ToListAsync();
+        return await db.Files.Include(x => x.History).Where(x => x.SyncPath == userSettingsProvider.SyncPath).ToListAsync();
     }
 
     public async Task RevertFileVersion(FileHistoryItem item)

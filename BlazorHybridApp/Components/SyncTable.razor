@@ -55,13 +55,10 @@
     </MudTabPanel>
     <MudTabPanel Text="Two">
 
-        <MudSlider @bind-Value="Spacing" Min="0" Max="20" Color="Color.Info" Class="mb-6">Spacing: @Spacing.ToString()</MudSlider>
-
-
-        <MudGrid Spacing="@Spacing" Justify="Justify.SpaceAround">
+        <MudGrid Class="mt-2" Justify="Justify.SpaceAround">
             <MudItem>
                 <MudPaper MaxWidth="400px" Elevation="0">
-                    <MudTreeView Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                    <MudTreeView MaxHeight="500px" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
                         <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
                             @foreach (var item in Items)
                             {
@@ -93,7 +90,7 @@
                 </MudPaper>
             </MudItem>
             <MudItem>
-                <MudPaper Width="500px">
+                <MudPaper MaxHeight="400px" Width="500px">
                     SELECTED: @SelectedValue
 
                     <MudExpansionPanels>
@@ -128,7 +125,7 @@
 
         </MudGrid>
     </MudTabPanel>
-    <MudTabPanel Text="Three">
+    @*<MudTabPanel Text="Three">
 
 
         <MudTable Items="@Items" Dense="true" Hover="true">
@@ -171,13 +168,13 @@
                             @file.Name
                         </MudText>
 
-                        @* <div class="mt-auto"> *@
-                        @*     <MudChip Size="Size.Small"  *@
-                        @*              Color="@GetStatusColor(file.Status)" *@
-                        @*               Label="true"> *@
-                        @*         @file.Status *@
-                        @*     </MudChip> *@
-                        @* </div> *@
+                        $1$ <div class="mt-auto"> #1#
+                        $1$     <MudChip Size="Size.Small"  #1#
+                        $1$              Color="@GetStatusColor(file.Status)" #1#
+                        $1$               Label="true"> #1#
+                        $1$         @file.Status #1#
+                        $1$     </MudChip> #1#
+                        $1$ </div> #1#
 
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                  Dense="true"
@@ -195,7 +192,7 @@
                 </MudPaper>
             }
         </div>
-    </MudTabPanel>
+    </MudTabPanel>*@
 </MudTabs>
 
 
@@ -213,8 +210,6 @@
 
 
 @code {
-    public int Spacing { get; set; } = 6;
-
     static readonly Guid ParentId = Guid.NewGuid();
     public string? SelectedValue;
     public LocalFile? SelectedFile => SelectedValue != null ? Items.FirstOrDefault(i => i.Id == Guid.Parse(SelectedValue)) : null;

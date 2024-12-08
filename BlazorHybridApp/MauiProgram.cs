@@ -40,7 +40,7 @@ namespace BlazorHybridApp
                 o.UseSqlite($"Data Source={dbPath}");
             });
 
-            builder.Services.AddSingleton<FolderSelector>();
+            builder.Services.AddSingleton<UserSettingsProvider>();
             builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);
             builder.Services.AddSingleton<State>();
             builder.Services.AddSingleton<ExplorerService>();

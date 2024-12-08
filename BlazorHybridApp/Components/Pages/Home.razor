@@ -3,7 +3,7 @@
 @using CommunityToolkit.Maui.Storage
 @inject FileSyncService FileSyncService
 @inject ExplorerService ExplorerService
-@inject FolderSelector FolderSelector
+@inject UserSettingsProvider UserSettingsProvider
 @inject IFolderPicker FolderPicker
 @inject State State
 @inject BackgroundTest BackgroundTest
@@ -11,14 +11,14 @@
 
 @implements IDisposable
 
-<button class="btn btn-primary" @onclick="PickFolder">Select Folder</button>
+@*<button class="btn btn-primary" @onclick="PickFolder">Select Folder</button>*@
 @*<button @onclick="TriggerSync">Trigger Sync</button>*@
 
 @if (!string.IsNullOrEmpty(SelectedPath))
 {
-    <div class="alert alert-info m-1">
+    @*<div class="alert alert-info m-1">
         @SelectedPath
-    </div>
+    </div>*@
 }
 
 <SyncExplorer></SyncExplorer>
@@ -38,19 +38,19 @@
         }
 
         SelectedPath = result.Folder.Path;
-        await FolderSelector.SelectNewSyncPath(SelectedPath);
+        await UserSettingsProvider.SelectNewSyncPathAsync(SelectedPath);
     }
 
     async void Changed()
     {
-        SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
-        await InvokeAsync(StateHasChanged);
+        /*SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
+        await InvokeAsync(StateHasChanged);*/
     }
     
     protected override async Task OnInitializedAsync()
     {
         State.SyncStatusChanged += Changed;
-        SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
+        //SelectedPath = await FolderSelector.RetrieveAndStoreSyncPath();
 
         Task.Run(async () => { await BackgroundTest.StartAsync(); });
     }

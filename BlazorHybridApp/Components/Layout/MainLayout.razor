@@ -1,4 +1,16 @@
-﻿@inherits LayoutComponentBase
+﻿@using BlazorHybridApp.Components.Pages.Dialogs
+@using BlazorHybridApp.Core
+@inherits LayoutComponentBase
+@implements IDisposable
+@inject IDialogService DialogService
+@inject UserSettingsProvider UserSettingsProvider
+@inject State state
+
+<style>
+    .my-custom-class {
+        backdrop-filter: blur(10px);
+    }
+</style>
 
 @* Required *@
 <MudThemeProvider />
@@ -11,45 +23,103 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-<MudMainContent class="pa-0">
+    <MudMainContent class="pa-0">
 
-    <div class="page">
-        <div class="sidebar">
-            <NavMenu />
-        </div>
-
-        <main>
-            <div class="top-row px-4">
-                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
             </div>
 
-            <article class="content px-4">
+            <main>
+                <div class="top-row px-4">
+                    <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                </div>
 
-                <ErrorBoundary>
-                    <ChildContent>
-                        <MudPaper Width="100%">
-                            <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
-                                    @Body
-                            </MudContainer>
-                        </MudPaper>
-                    </ChildContent>
-                    <ErrorContent Context="exception">
-                        <div class="container mt-3">
-                            <div class="alert alert-danger" role="alert">
-                                😈 A rotten gremlin got us. Sorry!
-                                <div class="mt-3">
-                                    @exception.ToString()
+                <article class="content px-4">
+
+                    <ErrorBoundary>
+                        <ChildContent>
+                            <MudPaper Width="100%">
+                                <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+
+                                    @if (SetupComleted)
+                                    {
+                                        @Body
+                                    }
+
+                                </MudContainer>
+                            </MudPaper>
+                        </ChildContent>
+                        <ErrorContent Context="exception">
+                            <div class="container mt-3">
+                                <div class="alert alert-danger" role="alert">
+                                    😈 A rotten gremlin got us. Sorry!
+                                    <div class="mt-3">
+                                        @exception.ToString()
+                                    </div>
                                 </div>
+
                             </div>
-
-                        </div>
-                    </ErrorContent>
+                        </ErrorContent>
 
 
-                </ErrorBoundary>
+                    </ErrorBoundary>
 
-            </article>
-        </main>
-    </div>
-</MudMainContent>
+                </article>
+            </main>
+        </div>
+    </MudMainContent>
 </MudLayout>
+
+
+@code
+{
+    UserSettings? UserSettings;
+    bool SetupComleted => UserSettings is { SyncPath: not null, Email: not null };
+    bool IsLoading = true;
+    
+    
+    protected override async Task OnInitializedAsync()
+    {
+        state.SettingsChanged += Changed;
+        
+        try
+        {
+            UserSettings = await UserSettingsProvider.GetUserSettingsAsync();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async void Changed()
+    {
+        UserSettings = await UserSettingsProvider.GetUserSettingsAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !IsLoading && !SetupComleted)
+        {
+            var options = new DialogOptions
+                {
+                    BackgroundClass = "my-custom-class",
+                    BackdropClick = false,
+                    CloseOnEscapeKey = false,
+                    CloseButton = false,
+
+                };
+
+           await DialogService.ShowAsync<SetupDialog>("Welcome to ideals-sync app", options);
+        }
+    }
+    
+    public void Dispose()
+    {
+        state.SettingsChanged -= Changed;
+
+    }
+}

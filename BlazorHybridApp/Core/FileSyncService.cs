@@ -8,19 +8,26 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorHybridApp.Core;
 
-public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folderSelector, IServiceProvider serviceProvider, State state)
+public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider userSettingsProvider, IServiceProvider serviceProvider, State state)
 {
     public async Task SyncAsync()
     {
+        var userSettings = await userSettingsProvider.GetUserSettingsAsync();
+        if (userSettings is null)
+        {
+            // setup not completed
+            return;
+        }
+
         await using var scope = serviceProvider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        if (folderSelector.SyncPath is null)
+        if (userSettingsProvider.SyncPath is null)
         {
             return;
         }
 
-        var syncPath = folderSelector.SyncPath;
+        var syncPath = userSettingsProvider.SyncPath;
         // Get server files
         var serverFiles = await httpClient.GetFilesAsync();
         var dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
@@ -284,7 +291,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, FolderSelector folde
 
     private LocalFile ConstructLocalFile(string fileName, string syncPath)
     {
-        var localFilePath = Path.Combine(folderSelector.SyncPath!, fileName);
+        var localFilePath = Path.Combine(userSettingsProvider.SyncPath!, fileName);
         var fileInfo = new FileInfo(localFilePath);
 
         var currentVersionId = Guid.NewGuid();
