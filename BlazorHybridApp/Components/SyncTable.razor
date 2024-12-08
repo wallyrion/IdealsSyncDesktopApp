@@ -20,31 +20,37 @@
                         <MudTreeViewItem Icon="@GetFileIcon(item)" CanExpand="@false" Value="@(item.Id.ToString())">
                             <BodyContent >
 
-                                <MudMenu ActivationEvent="@MouseEvent.RightClick">
-                                    <ActivatorContent>
-                                        @{
-                                            var (icon, color, tooltipText, animation) = GetIconStatus(item);
-                                        }
+                                <div style="width: 100%; height: 100%;">
+                                    <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                                        <ActivatorContent>
+                                            @{
+                                                var (icon, color, tooltipText, animation) = GetIconStatus(item);
+                                            }
 
-                                        <MudTooltip Text="@tooltipText">
-                                            <MudIcon Size="Size.Small" Color="@color"
-                                                     Class="@(animation + " mr-2")"
-                                                     Icon="@icon"></MudIcon>
-                                        </MudTooltip>
+                                            <MudTooltip Text="@tooltipText">
+                                                <MudIcon Size="Size.Small" Color="@color"
+                                                         Class="@(animation + " mr-2")"
+                                                         Icon="@icon"></MudIcon>
+                                            </MudTooltip>
 
-                                        @item.Name
-                                    </ActivatorContent>
-                                    <ChildContent>
-                                        <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
-                                        <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
-                                        <MudDivider/>
-                                        <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
-                                            Delete
-                                        </MudMenuItem>
+                                            <div>
+                                                @item.Name
 
-                                    </ChildContent>
-                                </MudMenu>
+                                            </div>
+                                        </ActivatorContent>
+                                        <ChildContent>
+                                            <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
+                                            @*<MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>*@
+                                            <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
+                                            <MudDivider/>
+                                            <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
+                                                Delete
+                                            </MudMenuItem>
+
+                                        </ChildContent>
+                                    </MudMenu>
+                                    
+                                </div>
 
                             </BodyContent>
                         </MudTreeViewItem>
@@ -451,10 +457,7 @@
 
     [Parameter]
     public EventCallback<LocalFile> OnShowInFolder { get; set; }
-
-    [Parameter]
-    public EventCallback<LocalFile> OnMudDelete { get; set; }
-
+    
     private async Task OpenFileAsync(LocalFile file)
     {
         Process.Start("explorer.exe", file.FullPath);
@@ -464,7 +467,7 @@
     private async Task ShareFileAsync(LocalFile file)
     {
         await RegisterContextMenu();
-        await OnShare.InvokeAsync(file);
+        //await OnShare.InvokeAsync(file);
     }
 
     private async Task ShowInFolderAsync(LocalFile file)
@@ -492,7 +495,7 @@
 
     private async Task DeleteFileAsync(LocalFile file)
     {
-        await OnMudDelete.InvokeAsync(file);
+        await DeleteItem.InvokeAsync(file);
     }
     
     public async Task RegisterContextMenu()
@@ -512,40 +515,8 @@
                 $"reg add \"HKCU\\Software\\Classes\\txtfile\\shell\\YourApp\\command\" /ve /t REG_SZ /d \"\\\"{Process.GetCurrentProcess().MainModule.FileName}\\\" \\\"%1\\\"\" /f",
             };*/
 
-            string exePath = Process.GetCurrentProcess().MainModule.FileName;
-            string icoPath = Path.Combine(Path.GetDirectoryName(exePath), "ideals.ico");
-            
-             var regCommands = new[]
-             {
-                // Directory
-                $""""
-                 reg add "HKCU\Software\Classes\Directory\shell\YourApp" /v "" /t REG_SZ /d "Sync with ideals" /f 
-                 
-                 """", 
-                $""""
-                 reg add "HKCU\Software\Classes\Directory\shell\YourApp\command" /v "" /t REG_SZ /d "\"{exePath}\" \"%1\"" /f ,
-                 """",
+            //await RegistryHelper.RegisterOpenWithIdeals();
 
-                $""""
-                 reg add "HKCU\Software\Classes\Directory\shell\YourApp" /v "Icon" /t REG_SZ /d "{icoPath}" /f 
-                 
-                 """"
-                 
-             };
-
-            foreach (var cmd in regCommands)
-            {
-                using var process = Process.Start(new ProcessStartInfo
-                {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c {cmd}",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                });
-            
-                await process.WaitForExitAsync();
-            }
-        
         }
         catch (Exception ex)
         {
@@ -560,7 +531,7 @@
             SyncStatus.OutgoingSync => (Icons.Material.Filled.Upgrade, Color.Primary, "Uploading to server", "bounce-up"),
             SyncStatus.IncomingSync => (Icons.Material.Filled.VerticalAlignBottom, Color.Primary, "Downloading from server", "bounce-down"),
             SyncStatus.Synced => (Icons.Material.Filled.Verified, Color.Success, "Successfully synced", "synced"),
-            SyncStatus.WaitingForDeletion => (Icons.Material.Filled.Cancel, Color.Error, "Waiting for removal", "blink"),
+            SyncStatus.WaitingForDeletion => (Icons.Material.Filled.CloudOff, Color.Error, "Waiting for removal", "blink"),
             _ => throw new ArgumentOutOfRangeException()
         };
     }

@@ -276,15 +276,23 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
     private async Task SyncLocalFileToServer(LocalFile file, AppDbContext db, string syncPath)
     {
-        var path = Path.Combine(syncPath, file.Name);
-        var bytes = await File.ReadAllBytesAsync(path);
-        var createdServerFile = await httpClient.UploadFileAsync(file.Name, bytes);
-        file.SyncedFileId = createdServerFile.Id;
-        file.Status = SyncStatus.Synced;
-        file.SyncPath = syncPath;
-        file.SyncedAt = DateTime.Now;
-        await db.SaveChangesAsync();
-        NotifyChanges();
+        try
+        {
+            var path = Path.Combine(syncPath, file.Name);
+            var bytes = await File.ReadAllBytesAsync(path);
+            var createdServerFile = await httpClient.UploadFileAsync(file.Name, bytes);
+            file.SyncedFileId = createdServerFile.Id;
+            file.Status = SyncStatus.Synced;
+            file.SyncPath = syncPath;
+            file.SyncedAt = DateTime.Now;
+            await db.SaveChangesAsync();
+            NotifyChanges();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+        
     }
 
     private async Task ReUploadFileToServer(LocalFile file, AppDbContext db, string syncPath)

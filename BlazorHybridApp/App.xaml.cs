@@ -61,6 +61,18 @@ namespace BlazorHybridApp
                     return null;
                 }
             }
+            else
+            {
+                try
+                {
+                    RegistryHelper.RegisterOpenWithIdeals();
+                }
+                catch (Exception e)
+                {
+                    Debug.Fail(e.ToString());
+                    Console.WriteLine(e);
+                }
+            }
 
             // Start listening for file open requests in a background task
             ListenForFileOpenRequests();
