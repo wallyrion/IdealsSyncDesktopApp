@@ -291,6 +291,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         catch (Exception e)
         {
             Console.WriteLine(e);
+
         }
         
     }
