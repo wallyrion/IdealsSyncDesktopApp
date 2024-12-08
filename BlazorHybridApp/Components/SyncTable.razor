@@ -6,8 +6,92 @@
 @using System.Text
 @using Microsoft.Win32
 
+<style>
+  
+</style>
+
+<MudGrid Class="mt-2 pb-3" Justify="Justify.SpaceAround">
+    <MudItem>
+        <MudPaper MaxWidth="400px" Elevation="0">
+            <MudTreeView MaxHeight="88vh" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
+                    @foreach (var item in Items)
+                    {
+                        <MudTreeViewItem Icon="@GetFileIcon(item)" CanExpand="@false" Value="@(item.Id.ToString())">
+                            <BodyContent >
+
+                                <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                                    <ActivatorContent>
+                                        @{
+                                            var (icon, color, tooltipText, animation) = GetIconStatus(item);
+                                        }
+
+                                        <MudTooltip Text="@tooltipText">
+                                            <MudIcon Size="Size.Small" Color="@color"
+                                                     Class="@(animation + " mr-2")"
+                                                     Icon="@icon"></MudIcon>
+                                        </MudTooltip>
+
+                                        @item.Name
+                                    </ActivatorContent>
+                                    <ChildContent>
+                                        <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
+                                        <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
+                                        <MudDivider/>
+                                        <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
+                                            Delete
+                                        </MudMenuItem>
+
+                                    </ChildContent>
+                                </MudMenu>
+
+                            </BodyContent>
+                        </MudTreeViewItem>
+                    }
+                </MudTreeViewItem>
+
+            </MudTreeView>
+        </MudPaper>
+    </MudItem>
+    <MudItem>
+        <MudPaper Width="500px" Elevation="0">
+            <MudAlert Severity="Severity.Normal">                        @SelectedFile?.Name
+            </MudAlert>
+
+            <!-- Add a scrollable container for the history -->
+            <div style="max-height: 80vh; overflow-y: auto;">
+                <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
+                    <ColGroup></ColGroup>
+                    <HeaderContent>
+                        <MudTh>Modified At</MudTh>
+                        <MudTh>Author</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            @context.ModifiedAt
+                        </MudTd>
+                        <MudTd>
+                            @context.MofifiedBy
+                        </MudTd>
+                        <MudTd>
+                            <MudTooltip Text="Go to this version">
+                                <MudIconButton OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                            </MudTooltip>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+
+</MudGrid>
+
+@*
 <MudTabs Elevation="4" Rounded="true" Centered="true" Color="@Color.Primary">
-    <MudTabPanel Text="One">
+    $1$<MudTabPanel Text="One">
 
         <table class="table table-striped table-bordered">
             <thead class="table-light">
@@ -52,79 +136,92 @@
             </tbody>
         </table>
 
-    </MudTabPanel>
-    <MudTabPanel Text="Two">
+    </MudTabPanel>#1#
 
-        <MudGrid Class="mt-2" Justify="Justify.SpaceAround">
-            <MudItem>
-                <MudPaper MaxWidth="400px" Elevation="0">
-                    <MudTreeView MaxHeight="80vh" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
-                        <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
-                            @foreach (var item in Items)
-                            {
-                                <MudTreeViewItem CanExpand="@false" Value="@(item.Id.ToString())">
-                                    <BodyContent >
+    <MudGrid Class="mt-2" Justify="Justify.SpaceAround">
+        <MudItem>
+            <MudPaper MaxWidth="400px" Elevation="0">
+                <MudTreeView MaxHeight="80vh" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                    <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
+                        @foreach (var item in Items)
+                        {
+                            <MudTreeViewItem Icon="@GetFileIcon(item)" CanExpand="@false" Value="@(item.Id.ToString())">
+                                <BodyContent >
 
-                                        <MudMenu ActivationEvent="@MouseEvent.RightClick">
-                                            <ActivatorContent>
-                                                @item.Name
-                                            </ActivatorContent>
-                                            <ChildContent>
-                                                <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
-                                                <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
-                                                <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
-                                                <MudDivider/>
-                                                <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
-                                                    Delete
-                                                </MudMenuItem>
+                                    <MudMenu ActivationEvent="@MouseEvent.RightClick">
+                                        <ActivatorContent>
+                                            @{
+                                                var (icon, color, tooltipText, animation) = GetIconStatus(item);
+                                            }
 
-                                            </ChildContent>
-                                        </MudMenu>
+                                            <MudTooltip Text="@tooltipText">
+                                                <MudIcon Size="Size.Small" Color="@color"
+                                                         Class="@(animation + " mr-2")"
+                                                         Icon="@icon"></MudIcon>
+                                            </MudTooltip>
 
-                                    </BodyContent>
-                                </MudTreeViewItem>
-                            }
-                        </MudTreeViewItem>
+                                            @item.Name
+                                        </ActivatorContent>
+                                        <ChildContent>
+                                            <MudMenuItem OnClick="@(() => OpenFileAsync(item))">Open</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => ShareFileAsync(item))">Share</MudMenuItem>
+                                            <MudMenuItem OnClick="@(() => ShowInFolderAsync(item))">Show in folder</MudMenuItem>
+                                            <MudDivider/>
+                                            <MudMenuItem OnClick="@(() => DeleteFileAsync(item))">
+                                                Delete
+                                            </MudMenuItem>
 
-                    </MudTreeView>
-                </MudPaper>
-            </MudItem>
-            <MudItem>
-                <MudPaper Width="500px" Elevation="0">
-                    <MudAlert Severity="Severity.Normal">                        @SelectedFile?.Name
-                    </MudAlert>
-                   
-                    <!-- Add a scrollable container for the history -->
-                    <div style="max-height: 80vh; overflow-y: auto;">
-                        <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
-                            <ColGroup></ColGroup>
-                            <HeaderContent>
-                                <MudTh>Modified At</MudTh>
-                                <MudTh>Author</MudTh>
-                                <MudTh></MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd>
-                                    @context.ModifiedAt
-                                </MudTd>
-                                <MudTd>
-                                    @context.MofifiedBy
-                                </MudTd>
-                                <MudTd>
-                                    <MudTooltip Text="Go to this version">
-                                        <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
-                                    </MudTooltip>
-                                </MudTd>
-                            </RowTemplate>
-                        </MudTable>
-                    </div>
-                </MudPaper>
-            </MudItem>
-           
+                                        </ChildContent>
+                                    </MudMenu>
 
-        </MudGrid>
-    </MudTabPanel>
-    @*<MudTabPanel Text="Three">
+                                </BodyContent>
+                            </MudTreeViewItem>
+                        }
+                    </MudTreeViewItem>
+
+                </MudTreeView>
+            </MudPaper>
+        </MudItem>
+        <MudItem>
+            <MudPaper Width="500px" Elevation="0">
+                <MudAlert Severity="Severity.Normal">                        @SelectedFile?.Name
+                </MudAlert>
+
+                <!-- Add a scrollable container for the history -->
+                <div style="max-height: 80vh; overflow-y: auto;">
+                    <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
+                        <ColGroup></ColGroup>
+                        <HeaderContent>
+                            <MudTh>Modified At</MudTh>
+                            <MudTh>Author</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>
+                                @context.ModifiedAt
+                            </MudTd>
+                            <MudTd>
+                                @context.MofifiedBy
+                            </MudTd>
+                            <MudTd>
+                                <MudTooltip Text="Go to this version">
+                                    <MudIconButton OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                </MudTooltip>
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </div>
+            </MudPaper>
+        </MudItem>
+
+
+    </MudGrid>
+    
+    $1$<MudTabPanel Text="Two">
+
+        
+    </MudTabPanel>#1#
+    $1$<MudTabPanel Text="Three">
 
 
         <MudTable Items="@Items" Dense="true" Hover="true">
@@ -167,13 +264,13 @@
                             @file.Name
                         </MudText>
 
-                        $1$ <div class="mt-auto"> #1#
-                        $1$     <MudChip Size="Size.Small"  #1#
-                        $1$              Color="@GetStatusColor(file.Status)" #1#
-                        $1$               Label="true"> #1#
-                        $1$         @file.Status #1#
-                        $1$     </MudChip> #1#
-                        $1$ </div> #1#
+                        $2$ <div class="mt-auto"> #2#
+                        $2$     <MudChip Size="Size.Small"  #2#
+                        $2$              Color="@GetStatusColor(file.Status)" #2#
+                        $2$               Label="true"> #2#
+                        $2$         @file.Status #2#
+                        $2$     </MudChip> #2#
+                        $2$ </div> #2#
 
                         <MudMenu Icon="@Icons.Material.Filled.MoreVert"
                                  Dense="true"
@@ -191,8 +288,9 @@
                 </MudPaper>
             }
         </div>
-    </MudTabPanel>*@
+    </MudTabPanel>#1#
 </MudTabs>
+*@
 
 
 @*<MudPaper Width="300px" Elevation="0">
@@ -244,24 +342,25 @@
         await OnRevertVersion.InvokeAsync(historyItem);
     }
 
-    public static string GetFileIcon(string filePath)
+    public static string GetFileIcon(LocalFile file)
     {
-        string extension = Path.GetExtension(filePath).ToLowerInvariant();
+        
+        string extension = Path.GetExtension(file.Name).ToLowerInvariant();
 
         return extension switch
         {
             ".pdf" => Icons.Custom.FileFormats.FilePdf,
-            ".doc" or ".docx" => Icons.Custom.FileFormats.FileDocument,
+            ".doc" or ".docx" or "txt" => Icons.Custom.FileFormats.FileDocument,
             ".xls" or ".xlsx" => Icons.Custom.FileFormats.FileExcel,
             ".jpg" or ".jpeg" or ".png" or ".gif" => Icons.Custom.FileFormats.FileImage,
             ".mp4" or ".avi" or ".mov" => Icons.Custom.FileFormats.FileVideo,
             ".mp3" or ".wav" or ".ogg" => Icons.Custom.FileFormats.FileMusic,
             ".zip" or ".rar" or ".7z" => Icons.Custom.Uncategorized.Folder,
-            _ => Icons.Custom.Uncategorized.Empty
+            _ => Icons.Custom.FileFormats.FileCode
             };
     }
 
-    public static Color GetStatusColor(SyncStatus status)
+    /*public static Color GetStatusColor(SyncStatus status)
     {
         return status switch
         {
@@ -271,7 +370,7 @@
             SyncStatus.WaitingForDeletion => Color.Warning,
             _ => Color.Default
             };
-    }
+    }*/
 
     [Parameter]
     public List<LocalFile> Files { get; set; } = new();
@@ -371,6 +470,18 @@
         {
             Debug.WriteLine($"Failed to register context menu: {ex.Message}");
         }
+    }
+
+    private (string, MudBlazor.Color, string tooltip, string animationClass) GetIconStatus(LocalFile item)
+    {
+        return item.Status switch
+        {
+            SyncStatus.OutgoingSync => (Icons.Material.Filled.Upgrade, MudBlazor.Color.Primary, "Uploading to server", "bounce-up"),
+            SyncStatus.IncomingSync => (Icons.Material.Filled.VerticalAlignBottom, MudBlazor.Color.Primary, "Downloading from server", "bounce-down"),
+            SyncStatus.Synced => (Icons.Material.Filled.Verified, MudBlazor.Color.Success, "Successfully synced", "synced"),
+            SyncStatus.WaitingForDeletion => (Icons.Material.Filled.Cancel, MudBlazor.Color.Error, "Waiting for removal", ""),
+            _ => throw new ArgumentOutOfRangeException()
+        };
     }
 
 }

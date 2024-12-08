@@ -296,7 +296,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
         var currentVersionId = Guid.NewGuid();
         var content = File.ReadAllBytes(localFilePath);
-        var currentHash = HashHelper.ComputeHash(File.ReadAllBytes(localFilePath));
+        var currentHash = HashHelper.ComputeHash(content);
         return new LocalFile
         {
             Id = Guid.NewGuid(),

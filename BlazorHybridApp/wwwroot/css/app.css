@@ -87,3 +87,46 @@ h1:focus {
     }
 }
 
+
+.synced {
+    animation: wiggle 1.5s infinite ease-in-out;
+}
+
+@keyframes wiggle {
+    0%, 100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-10deg);
+    }
+    75% {
+        transform: rotate(10deg);
+    }
+}
+
+.bounce-down {
+    animation: bounceDown 1s infinite ease-in-out;
+}
+
+@keyframes bounceDown {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(10px);
+    }
+}
+
+/* Bounce Up (Upload Animation) */
+.bounce-up {
+    animation: bounceUp 1s infinite ease-in-out;
+}
+
+@keyframes bounceUp {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
