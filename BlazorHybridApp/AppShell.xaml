@@ -8,7 +8,6 @@
     Shell.FlyoutBehavior="Disabled">
 
     <ShellContent
-        Title="Home"
         ContentTemplate="{DataTemplate blazorHybridApp:MainPage}"
         Route="MainPage" />
 

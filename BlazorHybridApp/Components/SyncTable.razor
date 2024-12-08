@@ -58,7 +58,7 @@
         <MudGrid Class="mt-2" Justify="Justify.SpaceAround">
             <MudItem>
                 <MudPaper MaxWidth="400px" Elevation="0">
-                    <MudTreeView MaxHeight="500px" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
+                    <MudTreeView MaxHeight="80vh" Hover ReadOnly="@ReadOnly" @bind-SelectedValue="SelectedValue" SelectionMode="SelectionMode.SingleSelection">
                         <MudTreeViewItem Text="root" Value="@(ParentId.ToString())" Expanded Icon="@Icons.Custom.Uncategorized.Folder" IconExpanded="@Icons.Custom.Uncategorized.FolderOpen">
                             @foreach (var item in Items)
                             {
@@ -90,38 +90,37 @@
                 </MudPaper>
             </MudItem>
             <MudItem>
-                <MudPaper MaxHeight="400px" Width="500px">
-                    SELECTED: @SelectedValue
-
-                    <MudExpansionPanels>
-                        <MudExpansionPanel Text="History of changes" Expanded="true">
-                            <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
-                                <ColGroup>
-                                </ColGroup>
-                                <HeaderContent>
-                                    <MudTh>Modified At</MudTh>
-                                    <MudTh>Author</MudTh>
-                                    <MudTh></MudTh>
-
-                                </HeaderContent>
-                                <RowTemplate>
-                                    <MudTd>
-                                        @context.ModifiedAt
-                                    </MudTd>
-                                    <MudTd>
-                                        @context.MofifiedBy
-                                    </MudTd>
-                                    <MudTd>
-                                        <MudTooltip Text="Go to this version">
-                                            <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
-                                        </MudTooltip>
-                                    </MudTd>
-                                </RowTemplate>
-                            </MudTable>
-                        </MudExpansionPanel>
-                    </MudExpansionPanels>
+                <MudPaper Width="500px" Elevation="0">
+                    <MudAlert Severity="Severity.Normal">                        @SelectedFile?.Name
+                    </MudAlert>
+                   
+                    <!-- Add a scrollable container for the history -->
+                    <div style="max-height: 80vh; overflow-y: auto;">
+                        <MudTable RowStyleFunc="ApplyCurrentVersionRowStyle" Items="@HistoryItems" Dense="true" Hover="true">
+                            <ColGroup></ColGroup>
+                            <HeaderContent>
+                                <MudTh>Modified At</MudTh>
+                                <MudTh>Author</MudTh>
+                                <MudTh></MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>
+                                    @context.ModifiedAt
+                                </MudTd>
+                                <MudTd>
+                                    @context.MofifiedBy
+                                </MudTd>
+                                <MudTd>
+                                    <MudTooltip Text="Go to this version">
+                                        <MudIconButton OnClick="() => RevertVersion(context)" Color="Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                    </MudTooltip>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </div>
                 </MudPaper>
             </MudItem>
+           
 
         </MudGrid>
     </MudTabPanel>

@@ -1,7 +1,7 @@
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
-    width: 3.5rem;
+    width: 3.8rem;
     height: 2.5rem;
     color: #022E34;
     position: absolute;
@@ -16,7 +16,7 @@
     }
 
 .top-row {
-    height: 3.5rem;
+    height: 3.8rem;
     background-color: rgba(0,0,0,0.4);
 }
 
@@ -99,7 +99,7 @@
         /* Never collapse the sidebar for wide screens */
         display: block;
         /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - 3.8rem);
         overflow-y: auto;
     }
 }
