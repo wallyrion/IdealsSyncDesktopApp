@@ -15,7 +15,10 @@ public class ExplorerService(IServiceProvider serviceProvider, UserSettingsProvi
         await using var scope = serviceProvider.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        return await db.Files.Include(x => x.History).Where(x => x.SyncPath == userSettingsProvider.SyncPath).ToListAsync();
+        return await db.Files
+            .Include(x => x.History)
+            .OrderBy(x => x.Name)
+            .Where(x => x.SyncPath == userSettingsProvider.SyncPath).ToListAsync();
     }
 
     public async Task RevertFileVersion(FileHistoryItem item)

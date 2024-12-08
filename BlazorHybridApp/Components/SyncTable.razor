@@ -97,9 +97,14 @@
                                 @context.MofifiedBy
                             </MudTd>
                             <MudTd>
-                                <MudTooltip Text="Go to this version">
-                                    <MudIconButton OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
-                                </MudTooltip>
+                                @if (SelectedFile.CurrentVersion != context.Id)
+                                {
+                                    <MudTooltip Text="Go to this version">
+                                        <MudIconButton Class="p-0" Size="Size.Small" OnClick="() => RevertVersion(context)" Color="MudBlazor.Color.Warning" Icon="@Icons.Material.Filled.CallMissedOutgoing"/>
+                                    </MudTooltip>
+                                }
+
+                                
                             </MudTd>
                         </RowTemplate>
                     </MudTable>
@@ -345,7 +350,7 @@
             return "";
         }
 
-        return "background: #9bfdd5";
+        return "background: #93f6a4";
     }
     
 
@@ -464,8 +469,25 @@
 
     private async Task ShowInFolderAsync(LocalFile file)
     {
-        Process.Start("explorer.exe", $"/select,\"{file.SyncPath}\"");
-        await OnShowInFolder.InvokeAsync(file);
+        try
+        {
+            string argument = $"/select,\"{file.FullPath}\"";
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = argument,
+                    UseShellExecute = true
+                }
+            };
+            process.Start();
+        }
+        catch (Exception ex)
+        {
+            // Handle any potential exceptions
+            Console.WriteLine($"An error occurred while trying to open the folder: {ex.Message}");
+        }
     }
 
     private async Task DeleteFileAsync(LocalFile file)
