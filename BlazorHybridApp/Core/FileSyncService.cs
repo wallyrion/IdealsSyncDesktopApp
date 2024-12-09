@@ -32,6 +32,40 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         var serverFiles = await httpClient.GetFilesAsync();
         var dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
 
+        var dbFileIds = dbFiles.Where(x => x.SyncedFileId is not null).Select(x => x.SyncedFileId).ToList();
+        var serverFilesToCreate = serverFiles.ExceptBy(dbFileIds, f => f.Id);
+        var serverFilesToDelete = dbFiles.Where(x => x.SyncedFileId is not null)
+            .ExceptBy(serverFiles.Select(x => x.Id), x => x.SyncedFileId!.Value).ToList();
+
+        foreach (var fileToDelete in serverFilesToDelete)
+        {
+            fileToDelete.Status = SyncStatus.WaitingForDeletion;
+        }
+
+        await db.SaveChangesAsync();
+        NotifyChanges();
+
+
+        foreach (var fileToDelete in serverFilesToDelete)
+        {
+            try
+            {
+                if (File.Exists(fileToDelete.FullPath))
+                {
+                    File.Delete(fileToDelete.FullPath);
+                }
+                db.Files.Remove(fileToDelete);
+                await db.SaveChangesAsync();
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        dbFiles = db.Files.Include(x => x.History).Where(x => x.SyncPath == syncPath).ToList();
+
         // Get local files
         var localFiles = GetLocalFileNames(syncPath);
 
@@ -40,8 +74,7 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         var dbFileNames = dbFiles.Select(x => x.Name).ToList();
         var missingFileNames = dbFileNames.Except(localFileNames);
 
-        var dbFileIds = dbFiles.Select(x => x.SyncedFileId).ToList();
-        var serverFilesToCreate = serverFiles.ExceptBy(dbFileIds, f => f.Id);
+
 
         // sync files from server that does not exist locally
         var stubFiles = serverFilesToCreate.Select(x => ConstructStubLocalFile(x, syncPath)).ToList();
@@ -115,6 +148,8 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
         {
             var localFile = localFiles.FirstOrDefault(x => string.Equals(x.Name, dbFile.Name, StringComparison.OrdinalIgnoreCase));
 
+            string d = "";
+            d.Trim(' ');
             if (localFile == null)
             {
                 return false;
@@ -208,7 +243,15 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
 
         foreach (var serverFile in stubFiles)
         {
-            await SyncServerFileToLocalSystem(serverFile, db, serverFiles);
+            try
+            {
+                await SyncServerFileToLocalSystem(serverFile, db, serverFiles);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         // sync files from local system that does not exist on the server

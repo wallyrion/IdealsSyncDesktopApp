@@ -9,7 +9,7 @@ public class UserSettings
 {
     public string? Email { get; set; }
     public string? SyncPath { get; set; }
-    public int OperationDelay { get; set; } = 1500;
+    public int OperationDelay { get; set; } = 500;
 }
 
 public class UserSettingsProvider(IServiceProvider serviceProvider, State state)

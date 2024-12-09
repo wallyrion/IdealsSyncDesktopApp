@@ -147,3 +147,10 @@ h1:focus {
         opacity: 0;
     }
 }
+
+
+.mud-button-outlined.mud-button-outlined-primary {
+    color: #12695c !important;
+    --mud-ripple-color: #12695c !important;
+    border: 1px solid #12695c !important;
+}

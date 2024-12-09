@@ -16,7 +16,7 @@ namespace BlazorHybridApp.Core
             _isStarted = true;
             while (true)
             {
-                await Task.Delay(1000);
+                await Task.Delay(300);
 
                 try
                 {

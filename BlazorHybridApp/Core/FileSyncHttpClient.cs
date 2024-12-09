@@ -20,12 +20,12 @@ public class FileSyncHttpClient
         _userSettingsProvider = userSettingsProvider;
     }
 
-    public async Task<List<ServerFile>> GetFilesAsync(int page = 1, int pageSize = 100)
+    public async Task<List<ServerFile>> GetFilesAsync(int page = 1)
     {
         var delay = await _userSettingsProvider.GetOperationDelayAsync();
         await Task.Delay(delay);
         
-        var response = await _client.GetAsync($"/files?page={page}&pageSize={pageSize}");
+        var response = await _client.GetAsync($"/files?page={page}");
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<ServerFile>>();
 
