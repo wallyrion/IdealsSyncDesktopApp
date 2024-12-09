@@ -1,10 +1,4 @@
-﻿
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace BlazorHybridApp.Core;
 
@@ -16,6 +10,7 @@ public class ExplorerService(IServiceProvider serviceProvider, UserSettingsProvi
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         return await db.Files
+            .AsNoTracking()
             .Include(x => x.History)
             .OrderBy(x => x.Name)
             .Where(x => x.SyncPath == userSettingsProvider.SyncPath).ToListAsync();

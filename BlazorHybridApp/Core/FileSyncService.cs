@@ -64,42 +64,51 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
             f.DbFile.Status = SyncStatus.IncomingSync;
             await db.SaveChangesAsync();
             NotifyChanges();
-            
-            var fileContentFromServer = await httpClient.DownloadFileAsync(f.ServerFile.Id);
-            var hash = HashHelper.ComputeHash(fileContentFromServer);
 
             try
             {
-                await state.ReadFileContentLock.WaitAsync();
-                f.DbFile.CurrentHash = hash;
-                f.DbFile.CurrentVersion = Guid.NewGuid();
-                f.DbFile.LastModifiedBy = f.ServerFile.LastModifiedBy;
-                f.DbFile.LastUpdatedServerTime = f.ServerFile.UpdatedAt;
-                var fileMetadata = new FileInfo(f.DbFile.FullPath);
-                await File.WriteAllBytesAsync(f.DbFile.FullPath, fileContentFromServer);
-                
-                db.History.Add(new FileHistoryItem
-                {
-                    FileContent = new FileContent
-                    {
-                        Content = fileContentFromServer,
-                        HistoryId = f.DbFile.CurrentVersion,
-                    },
-                    Id = f.DbFile.CurrentVersion,
-                    File = f.DbFile,
-                    Size = fileContentFromServer.LongLength,
-                    MofifiedBy = f.ServerFile.LastModifiedBy,
-                    ModifiedAt = fileMetadata.LastWriteTime
-                });
+                var fileContentFromServer = await httpClient.DownloadFileAsync(f.ServerFile.Id);
+                var hash = HashHelper.ComputeHash(fileContentFromServer);
 
-                f.DbFile.Status = SyncStatus.Synced;
-                await db.SaveChangesAsync();
-                NotifyChanges();
+                try
+                {
+                    await state.ReadFileContentLock.WaitAsync();
+                    f.DbFile.CurrentHash = hash;
+                    f.DbFile.CurrentVersion = Guid.NewGuid();
+                    f.DbFile.LastModifiedBy = f.ServerFile.LastModifiedBy;
+                    f.DbFile.LastUpdatedServerTime = f.ServerFile.UpdatedAt;
+                    var fileMetadata = new FileInfo(f.DbFile.FullPath);
+                    await File.WriteAllBytesAsync(f.DbFile.FullPath, fileContentFromServer);
+                
+                    db.History.Add(new FileHistoryItem
+                    {
+                        FileContent = new FileContent
+                        {
+                            Content = fileContentFromServer,
+                            HistoryId = f.DbFile.CurrentVersion,
+                        },
+                        Id = f.DbFile.CurrentVersion,
+                        File = f.DbFile,
+                        Size = fileContentFromServer.LongLength,
+                        MofifiedBy = f.ServerFile.LastModifiedBy,
+                        ModifiedAt = fileMetadata.LastWriteTime
+                    });
+
+                    f.DbFile.Status = SyncStatus.Synced;
+                    await db.SaveChangesAsync();
+                    NotifyChanges();
+                }
+                finally
+                {
+                    state.ReadFileContentLock.Release();
+                }
             }
-            finally
+            catch (Exception e)
             {
-                state.ReadFileContentLock.Release();
+                Console.WriteLine(e);
             }
+            
+           
         }
         
         var changedFiles = dbFiles.Where(dbFile =>
@@ -174,14 +183,22 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
                 return;
             }
 
-            var createdServerFile = await httpClient.UploadFileAsync(changedFile.Name, content);
-            changedFile.LastUpdatedServerTime = createdServerFile.UpdatedAt;
-            changedFile.SyncedFileId = createdServerFile.Id;
-            changedFile.Status = SyncStatus.Synced;
-            changedFile.SyncedAt = DateTime.Now;
+            try
+            {
+                var createdServerFile = await httpClient.UploadFileAsync(changedFile.Name, content);
+                changedFile.LastUpdatedServerTime = createdServerFile.UpdatedAt;
+                changedFile.SyncedFileId = createdServerFile.Id;
+                changedFile.Status = SyncStatus.Synced;
+                changedFile.SyncedAt = DateTime.Now;
 
-            await db.SaveChangesAsync();
-            NotifyChanges();
+                await db.SaveChangesAsync();
+                NotifyChanges();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+           
 
         }
 
@@ -308,11 +325,6 @@ public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider
             Console.WriteLine(e);
 
         }
-        
-    }
-
-    private async Task ReUploadFileToServer(LocalFile file, AppDbContext db, string syncPath)
-    {
         
     }
 
