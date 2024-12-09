@@ -8,7 +8,7 @@ using H.NotifyIcon.Apps.Maui;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Maui.Platform;
 
-namespace BlazorHybridApp
+namespace IdealsSyncDesktopApp
 {
     public partial class App : Application
     {
@@ -25,7 +25,7 @@ namespace BlazorHybridApp
             var services = new ServiceCollection();
             var mainModule = Process.GetCurrentProcess().MainModule;
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite($"Data Source={mainModule.FileName.Replace("BlazorHybridApp.exe","fileRequests.db")}"));
+                options.UseSqlite(LocationHelper.GetDbPath()));
             Services = services;
         }
 

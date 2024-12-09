@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace BlazorHybridApp
+namespace IdealsSyncDesktopApp
 {
     public class Program
     {

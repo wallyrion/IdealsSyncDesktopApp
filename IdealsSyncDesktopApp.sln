@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35507.96 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorHybridApp", "BlazorHybridApp\BlazorHybridApp.csproj", "{AFE275E1-11FB-493C-8097-589439292833}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IdealsSyncDesktopApp", "IdealsSyncDesktopApp\IdealsSyncDesktopApp.csproj", "{EE31922D-4725-4134-8003-C5359C63CF97}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AFE275E1-11FB-493C-8097-589439292833}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AFE275E1-11FB-493C-8097-589439292833}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AFE275E1-11FB-493C-8097-589439292833}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AFE275E1-11FB-493C-8097-589439292833}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE31922D-4725-4134-8003-C5359C63CF97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE31922D-4725-4134-8003-C5359C63CF97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE31922D-4725-4134-8003-C5359C63CF97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE31922D-4725-4134-8003-C5359C63CF97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {F6AFCB59-2ECE-4FAC-B152-5CBD183BA3C9}
+		SolutionGuid = {3D23245D-38A7-40A2-8DC3-98A0E4A3A1C1}
 	EndGlobalSection
 EndGlobal

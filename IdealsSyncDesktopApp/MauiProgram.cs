@@ -1,17 +1,16 @@
-﻿using BlazorHybridApp.Core;
+﻿using System.Diagnostics;
+using BlazorHybridApp.Core;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using H.NotifyIcon;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
-using Microsoft.Maui.Storage;
 using MudBlazor.Services;
-using System.Diagnostics;
-using Microsoft.Extensions.Configuration;
 using YourNamespace.Platforms.Windows;
 
-namespace BlazorHybridApp
+namespace IdealsSyncDesktopApp
 {
     public static class MauiProgram
     {
@@ -39,7 +38,7 @@ namespace BlazorHybridApp
 
             builder.Services.AddDbContext<AppDbContext>(o =>
             {
-                var dbPath = Process.GetCurrentProcess().MainModule!.FileName.Replace("BlazorHybridApp.exe", "fileRequests.db");
+                var dbPath = LocationHelper.GetDbPath();
 
                 o.UseSqlite($"Data Source={dbPath}");
             });
