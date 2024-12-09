@@ -8,6 +8,7 @@ using Microsoft.Maui.LifecycleEvents;
 using Microsoft.Maui.Storage;
 using MudBlazor.Services;
 using System.Diagnostics;
+using Microsoft.Extensions.Configuration;
 using YourNamespace.Platforms.Windows;
 
 namespace BlazorHybridApp
@@ -17,6 +18,9 @@ namespace BlazorHybridApp
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
+
+            builder.Configuration.AddJsonFile("appsettings.json");
+            
             builder
 
                 .UseMauiApp<App>()
@@ -44,11 +48,14 @@ namespace BlazorHybridApp
             builder.Services.AddSingleton<IFolderPicker>(FolderPicker.Default);
             builder.Services.AddSingleton<State>();
             builder.Services.AddSingleton<ExplorerService>();
-            
+
+            var useSharedServer = builder.Configuration["UseSharedServer"];
+            var apiBaseUrl = useSharedServer.Equals(bool.TrueString, StringComparison.OrdinalIgnoreCase) 
+                ? builder.Configuration["ApiServer"] : builder.Configuration["LocalApi"];
             builder.Services.AddScoped(sp =>
                 new HttpClient
                 {
-                    BaseAddress = new Uri("https://8f3d-212-15-178-0.ngrok-free.app/")
+                    BaseAddress = new Uri(apiBaseUrl!)
                 });
 
             builder.Services.AddScoped<FileSyncHttpClient>();
