@@ -3,8 +3,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using System.IO.MemoryMappedFiles;
 using System.Threading;
-using BlazorHybridApp.Core;
-using H.NotifyIcon.Apps.Maui;
+using IdealsSyncDesktopApp.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Maui.Platform;
 

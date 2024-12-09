@@ -1,4 +1,4 @@
-﻿namespace BlazorHybridApp.Core;
+﻿namespace IdealsSyncDesktopApp.Core;
 
 public class GlobalEvents
 {

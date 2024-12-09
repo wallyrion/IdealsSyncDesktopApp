@@ -1,14 +1,13 @@
 ﻿using System.Diagnostics;
-using BlazorHybridApp.Core;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Maui.Storage;
 using H.NotifyIcon;
+using IdealsSyncDesktopApp.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.LifecycleEvents;
 using MudBlazor.Services;
-using YourNamespace.Platforms.Windows;
 
 namespace IdealsSyncDesktopApp
 {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace BlazorHybridApp.Core;
+﻿namespace IdealsSyncDesktopApp.Core;
 
 public class LocalFile
 {

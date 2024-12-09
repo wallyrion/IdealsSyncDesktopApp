@@ -1,16 +1,7 @@
 ﻿using System.Text.Json;
-using System.Threading.Tasks;
-using BlazorHybridApp.Core.Extensions;
-using Microsoft.EntityFrameworkCore;
+using IdealsSyncDesktopApp.Core.Extensions;
 
-namespace BlazorHybridApp.Core;
-
-public class UserSettings
-{
-    public string? Email { get; set; }
-    public string? SyncPath { get; set; }
-    public int OperationDelay { get; set; } = 500;
-}
+namespace IdealsSyncDesktopApp.Core;
 
 public class UserSettingsProvider(IServiceProvider serviceProvider, State state)
 {

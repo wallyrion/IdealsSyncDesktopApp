@@ -1,4 +1,4 @@
-﻿namespace H.NotifyIcon.Apps.Maui;
+﻿namespace IdealsSyncDesktopApp;
 
 public partial class AppShell : Shell
 {

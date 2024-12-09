@@ -1,4 +1,4 @@
-﻿namespace BlazorHybridApp.Core.Extensions;
+﻿namespace IdealsSyncDesktopApp.Core.Extensions;
 
 public static class ServiceProviderExtensions
 {

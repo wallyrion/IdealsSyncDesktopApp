@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+namespace IdealsSyncDesktopApp.Components.Models;
+
 public class LoginAccountForm
 {
     [Required]

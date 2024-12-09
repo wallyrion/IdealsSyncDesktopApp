@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace BlazorHybridApp.Core;
+namespace IdealsSyncDesktopApp.Core;
 
 public static class LocationHelper
 {

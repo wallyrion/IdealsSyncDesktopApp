@@ -82,5 +82,9 @@
         </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Core\Entities\" />
+    </ItemGroup>
+
 
 </Project>

@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace BlazorHybridApp.Core
+﻿namespace IdealsSyncDesktopApp.Core
 {
     internal class BackgroundTest(FileSyncService fileSyncService)
     {

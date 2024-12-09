@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace BlazorHybridApp.Core;
+namespace IdealsSyncDesktopApp.Core;
 
 public class FileSyncService(FileSyncHttpClient httpClient, UserSettingsProvider userSettingsProvider, IServiceProvider serviceProvider, State state)
 {

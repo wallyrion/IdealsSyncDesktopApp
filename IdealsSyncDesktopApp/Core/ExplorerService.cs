@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace BlazorHybridApp.Core;
+namespace IdealsSyncDesktopApp.Core;
 
 public class ExplorerService(IServiceProvider serviceProvider, UserSettingsProvider userSettingsProvider, State state)
 {

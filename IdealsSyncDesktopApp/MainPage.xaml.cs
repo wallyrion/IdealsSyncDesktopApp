@@ -1,6 +1,6 @@
-﻿using BlazorHybridApp.Core;
-using CommunityToolkit.Mvvm.Input;
+﻿using CommunityToolkit.Mvvm.Input;
 using H.NotifyIcon;
+using IdealsSyncDesktopApp.Core;
 
 namespace IdealsSyncDesktopApp
 {
