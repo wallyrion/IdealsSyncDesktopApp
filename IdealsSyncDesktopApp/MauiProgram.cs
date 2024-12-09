@@ -37,9 +37,7 @@ namespace IdealsSyncDesktopApp
 
             builder.Services.AddDbContext<AppDbContext>(o =>
             {
-                var dbPath = LocationHelper.GetDbPath();
-
-                o.UseSqlite($"Data Source={dbPath}");
+                o.UseSqlite(LocationHelper.GetDbConnectionString());
             });
 
             builder.Services.AddSingleton<UserSettingsProvider>();

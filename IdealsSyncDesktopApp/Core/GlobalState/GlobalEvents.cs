@@ -1,4 +1,6 @@
-﻿namespace IdealsSyncDesktopApp.Core;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace IdealsSyncDesktopApp.Core;
 
 public class GlobalEvents
 {
@@ -8,34 +10,18 @@ public class GlobalEvents
 
 
     public static event Action AppWasClosed;
-    public static event Action<string> FodlerContextMenuClicked;
-    public static event Action<string> FileContextMenuClicked;
+    public static event Action<Guid> ContextMenuTriggered;
 
+    public static void ProcessContextMenuAction(Guid eventId)
+    {
+        ContextMenuTriggered.Invoke(eventId);
+    }
 
     public static void CloseApp()
     {
         AppWasClosed.Invoke();
     }
 
-    public static void ProcessFolderContextMenuClick(string path)
-    {
-        if (IsFile(path))
-        {
-            Console.WriteLine("The path is a file.");
-            FileContextMenuClicked.Invoke(path);
-
-        }
-        else if (IsFolder(path))
-        {
-            FodlerContextMenuClicked.Invoke(path);
-
-            Console.WriteLine("The path is a folder.");
-        }
-        else
-        {
-            Console.WriteLine("The path is invalid or does not exist.");
-        }
-    }
 
     public static bool IsFile(string path)
     {
@@ -54,8 +40,7 @@ public class GlobalEvents
         _di = di;
         _instance = this;
 
-        FodlerContextMenuClicked += HandleFolderSyncWithIdealsContextAction;
-        FileContextMenuClicked += HandleFileSyncWithIdealsContextAction;
+        ContextMenuTriggered += HandleContextMenuAction;
     }
 
     public void Initialize()
@@ -63,7 +48,7 @@ public class GlobalEvents
     }
 
 
-    public async void HandleFolderSyncWithIdealsContextAction(string path)
+    public async Task HandleFolderSyncWithIdealsContextAction(string path)
     {
         try
         {
@@ -87,7 +72,44 @@ public class GlobalEvents
         }
     }
 
-    public async void HandleFileSyncWithIdealsContextAction(string path)
+    public async void HandleContextMenuAction(Guid eventId)
+    {
+        try
+        {
+            await using var scope = _di.CreateAsyncScope();
+
+            var folderSelector = scope.ServiceProvider.GetRequiredService<UserSettingsProvider>();
+            var state = scope.ServiceProvider.GetRequiredService<State>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            var appEvent = await db.AppEvents.FirstAsync(x => x.Id == eventId);
+            appEvent.ProcessedAt = DateTime.Now;
+            await db.SaveChangesAsync();
+
+            var path = appEvent.Details;
+
+            if (IsFile(path))
+            {
+                await HandleFileSyncWithIdealsContextAction(path);
+
+            }
+            else if (IsFolder(path))
+            {
+                await HandleFolderSyncWithIdealsContextAction(path);
+            }
+            else
+            {
+                Console.WriteLine("The path is invalid or does not exist.");
+            }
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("HandleFolderSyncWithIdealsContextAction error " + e.ToString());
+        }
+    }
+
+    public async Task HandleFileSyncWithIdealsContextAction(string path)
     {
         try
         {

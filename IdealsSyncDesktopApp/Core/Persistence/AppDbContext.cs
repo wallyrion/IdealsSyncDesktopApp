@@ -52,4 +52,6 @@ public class AppEvent
     public required Guid Id { get; set; }
     public required string Name { get; set; }
     public required string Details { get; set; }
+    public DateTime? ProcessedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

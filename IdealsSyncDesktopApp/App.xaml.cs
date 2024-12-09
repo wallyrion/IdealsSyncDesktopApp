@@ -18,13 +18,13 @@ namespace IdealsSyncDesktopApp
         public App()
         {
             //InitializeComponent();
-
+            Console.WriteLine("Creating application");
             
             InitializeComponent();
             var services = new ServiceCollection();
             var mainModule = Process.GetCurrentProcess().MainModule;
             services.AddDbContext<AppDbContext>(options =>
-                options.UseSqlite(LocationHelper.GetDbPath()));
+                options.UseSqlite(LocationHelper.GetDbConnectionString()));
             Services = services;
         }
 
@@ -32,26 +32,30 @@ namespace IdealsSyncDesktopApp
         {
             _mutex = new Mutex(true, MutexName, out bool createdNew);
 
+            var provider = Services.BuildServiceProvider();
+            using var scope = provider.CreateScope();
+            using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            dbContext.Database.EnsureCreated();
+
             if (!createdNew)
             {
                 // Another instance exists, send file path to it
                 var args = Environment.GetCommandLineArgs();
                 if (args.Length > 1)
                 {
-                    var _dbContext = Services.BuildServiceProvider().GetRequiredService<AppDbContext>();
-                    _dbContext.Database.EnsureCreated();
                     
-                    _dbContext.AppEvents.Add(new AppEvent
+                    dbContext.AppEvents.Add(new AppEvent
                     {
                         Id = Guid.NewGuid(),
                         Details = args[1],
-                        Name = "Requested from explorer"
+                        Name = "Requested from explorer",
+                        CreatedAt = DateTime.Now
                     });
 
-                    _dbContext.SaveChanges();
+                    dbContext.SaveChanges();
                 
                     // Signal the existing instance
-                    using (var eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, "YourAppEvent"))
+                    using (var eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, "IdealsAppEvent"))
                     {
                         eventWaitHandle.Set();
                     }
@@ -99,24 +103,37 @@ namespace IdealsSyncDesktopApp
         {
             Task.Run(() =>
             {
-                using (var eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, "YourAppEvent"))
+                using var eventWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, "IdealsAppEvent");
+                while (true)
                 {
-                    while (true)
+                    if (eventWaitHandle.WaitOne())
                     {
-                        if (eventWaitHandle.WaitOne())
-                        {
-                            var _dbContext = Services.BuildServiceProvider().GetRequiredService<AppDbContext>();
-                            _dbContext.Database.EnsureCreated();
-                            
-                            var path = _dbContext.AppEvents.AsNoTracking().FirstOrDefault()?.Details;
+                        using var dbContext = Services.BuildServiceProvider().GetRequiredService<AppDbContext>();
 
-                            _dbContext.AppEvents.ExecuteDelete();
-                            
-                            MainThread.BeginInvokeOnMainThread(() =>
-                                {
-                                    HandleTextFile(path ?? "");
-                                });
+                        var appEvent = dbContext.AppEvents.OrderBy(x => x.ProcessedAt).FirstOrDefault();
+
+                        if (appEvent == null)
+                        {
+                            dbContext.AppEvents.Add(new AppEvent
+                            {
+                                Name = "IdealsAppEvent processing skipped",
+                                Id = Guid.NewGuid(),
+                                CreatedAt = DateTime.Now,
+                                ProcessedAt = DateTime.Now,
+                                Details = "IdealsAppEvent triggered for unknown reason"
+                            });
                         }
+                        else
+                        {
+                            MainThread.BeginInvokeOnMainThread(() =>
+                            {
+                                GlobalEvents.ProcessContextMenuAction(appEvent.Id);
+
+                                //HandleTextFile(path ?? "");
+                            });
+                        }
+
+                        
                     }
                 }
             });
@@ -124,7 +141,7 @@ namespace IdealsSyncDesktopApp
         
         private void HandleTextFile(string filePath)
         {
-            GlobalEvents.ProcessFolderContextMenuClick(filePath);
+            
         }
 
         protected override void CleanUp()
