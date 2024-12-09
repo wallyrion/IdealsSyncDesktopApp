@@ -110,7 +110,7 @@ namespace IdealsSyncDesktopApp
                     {
                         using var dbContext = Services.BuildServiceProvider().GetRequiredService<AppDbContext>();
 
-                        var appEvent = dbContext.AppEvents.OrderBy(x => x.ProcessedAt).FirstOrDefault();
+                        var appEvent = dbContext.AppEvents.Where(x => x.ProcessedAt == null).OrderBy(x => x.CreatedAt).FirstOrDefault();
 
                         if (appEvent == null)
                         {
