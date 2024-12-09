@@ -1,9 +1,9 @@
-﻿namespace IdealsSyncDesktopApp.Core
-{
-    internal class ContentTypeHelper
-    {
+﻿namespace IdealsSyncDesktopApp.Core;
 
-        private static IDictionary<string, string> _mappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
+internal class ContentTypeHelper
+{
+
+    private static IDictionary<string, string> _mappings = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase) {
 
         #region Big freaking list of mime types
         // combination of values from Windows 7 Registry and 
@@ -571,23 +571,22 @@
         {".zip", "application/x-zip-compressed"},
         #endregion
         
-        };
+    };
 
-        public static string GetMimeType(string extension)
+    public static string GetMimeType(string extension)
+    {
+        if (extension == null)
         {
-            if (extension == null)
-            {
-                throw new ArgumentNullException("extension");
-            }
-
-            if (!extension.StartsWith("."))
-            {
-                extension = "." + extension;
-            }
-
-            string mime;
-
-            return _mappings.TryGetValue(extension, out mime) ? mime : "application/octet-stream";
+            throw new ArgumentNullException("extension");
         }
+
+        if (!extension.StartsWith("."))
+        {
+            extension = "." + extension;
+        }
+
+        string mime;
+
+        return _mappings.TryGetValue(extension, out mime) ? mime : "application/octet-stream";
     }
 }

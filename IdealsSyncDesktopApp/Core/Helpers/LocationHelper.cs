@@ -10,8 +10,5 @@ public static class LocationHelper
         string dbPath = Path.Combine(exePath, "app_database.db");
 
         return dbPath;
-        /*string dbFileName = "app_database.db";
-
-        string dbPath = Path.Combine(FileSystem.AppDataDirectory, dbFileName);*/
     }
 }
